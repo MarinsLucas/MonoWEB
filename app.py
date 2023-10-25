@@ -12,7 +12,7 @@ server = get_server()
 state, ctrl = server.state, server.controller
 
 #Tenho que modificar essa linha
-reader = pv.get_reader('simulation_result.pvd')
+reader = pv.get_reader('temp/simulation_result.pvd')
 reader.set_active_time_value(reader.time_values[0])
 source = reader.read()
 current_time = reader.time_values[0]
@@ -56,6 +56,12 @@ with SinglePageLayout(server) as layout:
             bottom=True,
             active=("trame__busy",),
         )
+
+        #Estava tentando colocar um icone, mas não consigo.
+        #https://vuetifyjs.com/en/api/v-btn/#props
+        vuetify.VBtn()
+        vuetify.VBtn()
+        vuetify.VBtn()
 
     #Isso eu nn entendi, mas todo código com trame tem isso
     with layout.content:
