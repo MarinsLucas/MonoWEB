@@ -3,6 +3,7 @@ from pyvista.trame.ui import plotter_ui
 from trame.app import get_server
 from trame.ui.vuetify import SinglePageLayout
 from trame.widgets import vuetify
+from trame.widgets import html
 from vtkmodules.vtkFiltersSources import vtkConeSource
 
 pv.OFF_SCREEN = True
@@ -24,6 +25,7 @@ sargs = dict(interactive=True)
 pl = pv.Plotter()
 pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
 
+step = 0
 #Isso é exclusivo do código do cone, mas achei interessante salvar: ele modifica as coisas sempre que sofre alguma mudança
 @state.change("time_step")
 def update_contour(time_step, **kwargs):
@@ -31,12 +33,21 @@ def update_contour(time_step, **kwargs):
     current_time = reader.time_values[int(time_step)]
     source = reader.read()
     pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
+    step = time_step
     ctrl.view_update()
 
+def subTime():
+    print(step)
+    """ reader.set_active_time_value(reader.time_values[int(current_time-1)])
+    current_time = reader.time_values[int(current_time-1)]
+    source = reader.read()
+    pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
+    ctrl.view_update() """
 
 with SinglePageLayout(server) as layout:
     with layout.toolbar:
         vuetify.VSpacer()
+
         #slider do tempo
         vuetify.VSlider(
             v_model=("time_step", 0),
@@ -59,9 +70,13 @@ with SinglePageLayout(server) as layout:
 
         #Estava tentando colocar um icone, mas não consigo.
         #https://vuetifyjs.com/en/api/v-btn/#props
-        vuetify.VBtn()
-        vuetify.VBtn()
-        vuetify.VBtn()
+        vuetify.VBtn("-",
+                    click=subTime,
+                    messages = current_time,
+                    change=ctrl.view_update,
+                    )
+        vuetify.VBtn("▶")
+        vuetify.VBtn("+") 
 
     #Isso eu nn entendi, mas todo código com trame tem isso
     with layout.content:
