@@ -30,6 +30,11 @@ pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
 time_step = 0
 step = 0
 
+def callback(mesh, Scalars_):
+    print("Clicou")
+
+
+
 @ctrl.add("on_server_reload")
 def print_item(item):
     print("Clicked on", item)
@@ -39,7 +44,7 @@ def updateMesh():
     reader.set_active_time_value(reader.time_values[0])
     source = reader.read()
     current_time = reader.time_values[0]
-    pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
+    pl.add_mesh(source, scalar_bar_args=sargs, name="mesh")
     ctrl.view_update()
     pass
 #Isso é exclusivo do código do cone, mas achei interessante salvar: ele modifica as coisas sempre que sofre alguma mudança
@@ -48,9 +53,9 @@ def update_contour(position , **kwargs):
     global time_step
     time_step = position
     reader.set_active_time_value(reader.time_values[int(time_step)])
-    current_time = reader.time_values[int(time_step)]
     source = reader.read()
-    pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
+    pl.add_mesh(source, scalar_bar_args=sargs, name="mesh")
+    #pl.update_scalars(source[0].get_array("Scalars_"))
     ctrl.view_update()
 
 def subTime():
@@ -62,7 +67,7 @@ def subTime():
     reader.set_active_time_value(reader.time_values[int(time_step)])
     current_time = reader.time_values[int(time_step)]
     source = reader.read()
-    pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
+    pl.add_mesh(source, scalar_bar_args=sargs, name="mesh")
     ctrl.view_update()
     pass
 
@@ -85,7 +90,7 @@ def playSimulation():
         reader.set_active_time_value(reader.time_values[int(i)])
         current_time = reader.time_values[int(i)]
         source = reader.read()
-        pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
+        pl.add_mesh(source, scalar_bar_args=sargs, name="mesh")
         ctrl.view_update()
     pass
 
@@ -159,6 +164,8 @@ with SinglePageWithDrawerLayout(server) as layout:
             # Utiliza a UI do pyvista (onde dá opções pra resetar a camera e etc)
             view = plotter_ui(pl)
             ctrl.view_update = view.update
+            # Atribua a função de retorno de chamada ao evento de clique de célula
+            pl.enable_cell_picking(callback=callback)
 
 
 #Inicia o servidor
