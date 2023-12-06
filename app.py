@@ -1,31 +1,18 @@
-import pyvista as pv
-from pyvista.trame.ui import plotter_ui
+import paraview.web.venv
+from pathlib import Path
+from paraview import simple
+
 from trame.app import get_server
 from trame.widgets import vuetify
 from trame.ui.vuetify import SinglePageWithDrawerLayout
 import subprocess
 
+
 monoalg_command = "./runmonoalg.sh"
-pv.OFF_SCREEN = True
 
 #Inicializa o servidor
 server = get_server()
 state, ctrl = server.state, server.controller
-
-reader = pv.get_reader('MonoAlg3D_C/outputs/temp/simulation_result.pvd')
-reader.set_active_time_value(reader.time_values[0])
-source = reader.read()
-current_time = reader.time_values[0]
-
-state.models = ["Ten Tusscher", "HH", "MD"]
-#Cria barra de escala interativa
-sargs = dict(interactive=True) 
-#https://docs.pyvista.org/version/stable/examples/02-plot/scalar-bars.html
-
-#Utiliza o plotter do pyvista para plotar a mesh.
-pl = pv.Plotter()
-pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
-
 
 time_step = 0
 step = 0
@@ -40,58 +27,18 @@ def print_item(item):
     print("Clicked on", item)
 
 def updateMesh():
-    reader = pv.get_reader('MonoAlg3D_C/outputs/temp/simulation_result.pvd')
-    reader.set_active_time_value(reader.time_values[0])
-    source = reader.read()
-    current_time = reader.time_values[0]
-    pl.add_mesh(source, scalar_bar_args=sargs, name="mesh")
-    ctrl.view_update()
+    print("a")
     pass
 #Isso é exclusivo do código do cone, mas achei interessante salvar: ele modifica as coisas sempre que sofre alguma mudança
 @state.change("position")
 def update_contour(position , **kwargs):
-    global time_step
-    time_step = position
-    reader.set_active_time_value(reader.time_values[int(time_step)])
-    source = reader.read()
-    pl.add_mesh(source, scalar_bar_args=sargs, name="mesh")
-    #pl.update_scalars(source[0].get_array("Scalars_"))
-    ctrl.view_update()
+    print("a")
 
 def subTime():
-    global time_step
-    if(time_step > 0):
-        time_step-=1
-    else:
-        pass
-    reader.set_active_time_value(reader.time_values[int(time_step)])
-    current_time = reader.time_values[int(time_step)]
-    source = reader.read()
-    pl.add_mesh(source, scalar_bar_args=sargs, name="mesh")
-    ctrl.view_update()
+    print("a")
     pass
 
 def addTime():
-    global time_step
-    if(time_step < len(reader.time_values)-1):
-        time_step+=1
-    else:
-        pass
-    reader.set_active_time_value(reader.time_values[int(time_step)])
-    current_time = reader.time_values[int(time_step)]
-    source = reader.read()
-    pl.add_mesh(source, scalar_bar_args=sargs, clim=[-90, 40], name="mesh")
-    ctrl.view_update()
-    pass
-
-def playSimulation():
-    global time_step
-    for i in range(time_step, len(reader.time_values)):
-        reader.set_active_time_value(reader.time_values[int(i)])
-        current_time = reader.time_values[int(i)]
-        source = reader.read()
-        pl.add_mesh(source, scalar_bar_args=sargs, name="mesh")
-        ctrl.view_update()
     pass
 
 def runMonoAlg3D():
@@ -109,14 +56,6 @@ def runMonoAlg3D():
 
 with SinglePageWithDrawerLayout(server) as layout:
     with layout.drawer:
-        with vuetify.VListGroup():
-            with vuetify.VListItem(
-                v_for="(item, i) in models",
-                key="i",
-                value=["item"],
-            ):  
-                vuetify.VListItemTitle("{{ item }}", click=(print_item, "[item]"))
-
         vuetify.VTextField(v_model=("simulation_time", 1000))
         vuetify.VTextField(v_model=("S1", 5))
         vuetify.VTextField(v_model=("S2" , 500))
@@ -129,12 +68,11 @@ with SinglePageWithDrawerLayout(server) as layout:
         vuetify.VSlider(
             v_model=("position", 0),
             min=0,
-            max=len(reader.time_values)-1,
+            max=100,
             hide_details=True,
             dense=True,
             style="max-width: 300px",
             # change=ctrl.view_update,
-            messages = current_time,
         )
     
         #Barra de carregamento abaixo do header
@@ -150,22 +88,12 @@ with SinglePageWithDrawerLayout(server) as layout:
         vuetify.VBtn("-",
                     click=subTime,
                     )
-        vuetify.VBtn("▶", click=playSimulation)
         vuetify.VBtn("+",
                      click=addTime) 
         vuetify.VBtn("*", click=updateMesh)
 
     #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
-    with layout.content:
-        with vuetify.VContainer(
-            fluid=True,
-            classes="pa-0 fill-height",
-        ):
-            # Utiliza a UI do pyvista (onde dá opções pra resetar a camera e etc)
-            view = plotter_ui(pl)
-            ctrl.view_update = view.update
-            # Atribua a função de retorno de chamada ao evento de clique de célula
-            pl.enable_cell_picking(callback=callback)
+            
 
 
 #Inicia o servidor
