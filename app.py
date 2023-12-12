@@ -16,8 +16,9 @@ monoalg_command = "./runmonoalg.sh"
 from paraview import simple
 
 simple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
-reader = simple.XMLUnstructuredGridReader(FileName="/home/user/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/V_it_0.vtu")
-reader.CellArrayStatus = ['Scalars_']
+# reader = simple.XMLUnstructuredGridReader(FileName="/home/user/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/V_it_0.vtu")
+reader = simple.PVDReader(FileName="/home/user/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
+reader.CellArrays = ['Scalars_']
 #reader.TimeArray = "Alguma coisa"
 
 # Rendering setup
@@ -46,7 +47,12 @@ def print_item(item):
     print("Clicked on", item)
 
 def updateMesh():
-    print("a")
+    animationscene = simple.GetAnimationScene()
+    timeKeeper = simple.GetTimeKeeper()
+    view = simple.GetActiveViewOrCreate('RenderView')
+    animationscene.UpdateAnimationUsingDataTimeSteps()
+    representation = simple.Show(reader, view)
+    change = ctrl.view_update
     pass
 #Isso é exclusivo do código do cone, mas achei interessante salvar: ele modifica as coisas sempre que sofre alguma mudança
 @state.change("position")
