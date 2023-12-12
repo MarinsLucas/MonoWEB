@@ -3,12 +3,31 @@ from pathlib import Path
 from paraview import simple
 
 from trame.app import get_server
-from trame.widgets import vuetify
+from trame.widgets import vuetify, paraview
 from trame.ui.vuetify import SinglePageWithDrawerLayout
 import subprocess
 
 
 monoalg_command = "./runmonoalg.sh"
+########################### Configuando paraview #######################
+# -----------------------------------------------------------------------------
+# ParaView pipeline
+# -----------------------------------------------------------------------------
+from paraview import simple
+
+simple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
+reader = simple.XMLUnstructuredGridReader(FileName="/home/user/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/V_it_0.vtu")
+reader.CellArrayStatus = ['Scalars_']
+#reader.TimeArray = "Alguma coisa"
+
+# Rendering setup
+view = simple.GetRenderView()
+view.OrientationAxesVisibility = 0
+view = simple.Render()
+representation = simple.Show(reader, view)
+simple.ResetCamera()
+view.CenterOfRotation = view.CameraFocalPoint
+########################################## Fim #################################
 
 #Inicializa o servidor
 server = get_server()
@@ -93,7 +112,14 @@ with SinglePageWithDrawerLayout(server) as layout:
         vuetify.VBtn("*", click=updateMesh)
 
     #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
-            
+    with layout.content:
+        with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
+            html_view = paraview.VtkRemoteLocalView(
+                view,
+                namespace="demo",
+            )
+            ctrl.view_update = html_view.update
+            ctrl.view_reset_camera = html_view.reset_camera
 
 
 #Inicia o servidor
