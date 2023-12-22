@@ -1,3 +1,16 @@
+import sys
+if '--virtual-env' in sys.argv:
+  virtualEnvPath = sys.argv[sys.argv.index('--virtual-env') + 1]
+  # Linux
+  #virtualEnv = virtualEnvPath + '/bin/activate_this.py'
+  # Windows
+  virtualEnv = virtualEnvPath + '/Scripts/activate_this.py'
+  if sys.version_info.major < 3:
+    execfile(virtualEnv, dict(__file__=virtualEnv))
+  else:
+    exec(open(virtualEnv).read(), {'__file__': virtualEnv})
+
+
 import paraview.web.venv
 from pathlib import Path
 from paraview import simple
@@ -17,7 +30,7 @@ from paraview import simple
 
 simple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
 # reader = simple.XMLUnstructuredGridReader(FileName="/home/user/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/V_it_0.vtu")
-reader = simple.PVDReader(FileName="/home/user/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
+reader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
 reader.CellArrays = ['Scalars_']
 #reader.TimeArray = "Alguma coisa"
 
@@ -46,24 +59,34 @@ def callback(mesh, Scalars_):
 def print_item(item):
     print("Clicked on", item)
 
-def updateMesh():
+
+#Não consegui testar isso ainda (pois minha simulação é muito pequena)
+def PlayPVD():
     animationscene = simple.GetAnimationScene()
-    timeKeeper = simple.GetTimeKeeper()
-    view = simple.GetActiveViewOrCreate('RenderView')
-    animationscene.UpdateAnimationUsingDataTimeSteps()
-    representation = simple.Show(reader, view)
-    change = ctrl.view_update
+    """     animationscene.Play()
+    html_view.update_image() """
+    for i in range(10):
+        animationscene.GoToNext()
+        html_view.update_image()
     pass
-#Isso é exclusivo do código do cone, mas achei interessante salvar: ele modifica as coisas sempre que sofre alguma mudança
+
 @state.change("position")
 def update_contour(position , **kwargs):
-    print("a")
+    animationscene = simple.GetAnimationScene()
+    animationscene.AnimationTime = position
+    html_view.update_image()
+    pass
 
 def subTime():
-    print("a")
+    animationscene = simple.GetAnimationScene()
+    animationscene.GoToPrevious()
+    html_view.update_image()
     pass
 
 def addTime():
+    animationscene = simple.GetAnimationScene()
+    animationscene.GoToNext()
+    html_view.update_image()
     pass
 
 def runMonoAlg3D():
@@ -115,7 +138,7 @@ with SinglePageWithDrawerLayout(server) as layout:
                     )
         vuetify.VBtn("+",
                      click=addTime) 
-        vuetify.VBtn("*", click=updateMesh)
+        vuetify.VBtn("*", click=PlayPVD)
 
     #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
     with layout.content:
