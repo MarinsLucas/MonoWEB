@@ -68,6 +68,14 @@ def PlayPVD():
     for i in range(10):
         animationscene.GoToNext()
         html_view.update_image()
+        html_view.update
+    pass
+
+def update_frame():
+    print(state.currentTime)
+    animationscene = simple.GetAnimationScene()
+    animationscene.AnimationTime = float(state.currentTime)
+    html_view.update_image()
     pass
 
 @state.change("position")
@@ -86,6 +94,20 @@ def subTime():
 def addTime():
     animationscene = simple.GetAnimationScene()
     animationscene.GoToNext()
+    print(animationscene.TimeStep)
+    html_view.update_image()
+    state.currentTime = animationscene.AnimationTime
+    pass
+
+def lastTime():
+    animationscene = simple.GetAnimationScene()
+    animationscene.GoToLast()
+    html_view.update_image()
+    pass
+
+def firstTime():
+    animationscene = simple.GetAnimationScene()
+    animationscene.GoToFirst()
     html_view.update_image()
     pass
 
@@ -111,18 +133,7 @@ with SinglePageWithDrawerLayout(server) as layout:
         vuetify.VBtn("Executar", click=runMonoAlg3D)    
     with layout.toolbar:
         vuetify.VSpacer()
-
-        #slider do tempo
-        vuetify.VSlider(
-            v_model=("position", 0),
-            min=0,
-            max=100,
-            hide_details=True,
-            dense=True,
-            style="max-width: 300px",
-            # change=ctrl.view_update,
-        )
-    
+   
         #Barra de carregamento abaixo do header
         vuetify.VProgressLinear(
             indeterminate=True,
@@ -133,12 +144,18 @@ with SinglePageWithDrawerLayout(server) as layout:
 
         #Estava tentando colocar um icone, mas não consigo.
         #https://vuetifyjs.com/en/api/v-btn/#props
+        vuetify.VBtn("F", click=firstTime)
         vuetify.VBtn("-",
                     click=subTime,
                     )
+        
+        vuetify.VTextField(v_model=("currentTime", 0), change=update_frame, number = True)
+
         vuetify.VBtn("+",
                      click=addTime) 
-        vuetify.VBtn("*", click=PlayPVD)
+        #Tirei o botão que fazia a animação, porque eu não consegui fazer a animação (talvez estudar mais o paraview em si?)
+        #vuetify.VBtn("*", click=PlayPVD)
+        vuetify.VBtn("L", click=lastTime)
 
     #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
     with layout.content:
@@ -149,7 +166,6 @@ with SinglePageWithDrawerLayout(server) as layout:
             )
             ctrl.view_update = html_view.update
             ctrl.view_reset_camera = html_view.reset_camera
-
 
 #Inicia o servidor
 server.start()
