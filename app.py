@@ -29,7 +29,6 @@ monoalg_command = "./runmonoalg.sh"
 from paraview import simple
 
 simple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
-# reader = simple.XMLUnstructuredGridReader(FileName="/home/user/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/V_it_0.vtu")
 reader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
 reader.CellArrays = ['Scalars_']
 #reader.TimeArray = "Alguma coisa"
@@ -94,9 +93,7 @@ def subTime():
 def addTime():
     animationscene = simple.GetAnimationScene()
     animationscene.GoToNext()
-    print(animationscene.TimeStep)
     html_view.update_image()
-    state.currentTime = animationscene.AnimationTime
     pass
 
 def lastTime():
@@ -110,6 +107,29 @@ def firstTime():
     animationscene.GoToFirst()
     html_view.update_image()
     pass
+
+def addClip():
+    clip = simple.Clip(registrationName="Clip1",Input=reader)
+    clip.ClipType = "Plane"
+    clip.HyperTreeGridClipper = 'Plane'
+    clip.Scalars = ['CELLS', 'Scalars_']
+    clip.Value = -85.2300033569336
+    clip.Invert = 1
+    clip.Crinkleclip = 0
+    clip.Exact = 0
+
+    clip.ClipType.Origin = [16375.0, 15125.0, 13875.0]
+    clip.ClipType.Normal = [1.0, 0.0, 0.0]
+    clip.ClipType.Offset = 0.0
+
+    clip.HyperTreeGridClipper.Origin = [16375.0, 15125.0, 13875.0]
+    clip.HyperTreeGridClipper.Normal = [1.0, 0.0, 0.0]
+    clip.HyperTreeGridClipper.Offset = 0.0
+
+    simple.Hide(reader, view)
+    representation = simple.Show(clip, view)
+    html_view.update_image()
+
 
 def runMonoAlg3D():
     #Colocar os campos 
@@ -148,17 +168,25 @@ with SinglePageWithDrawerLayout(server) as layout:
         vuetify.VBtn("-",
                     click=subTime,
                     )
-        
-        vuetify.VTextField(v_model=("currentTime", 0), change=update_frame, number = True)
-
+        #Tirei esse trem por enquanto, porque não consegui diminuir a largura dele
+        #vuetify.VTextField(v_model=("currentTime", 0), change=update_frame, number = True, width=20)
         vuetify.VBtn("+",
                      click=addTime) 
         #Tirei o botão que fazia a animação, porque eu não consegui fazer a animação (talvez estudar mais o paraview em si?)
         #vuetify.VBtn("*", click=PlayPVD)
         vuetify.VBtn("L", click=lastTime)
 
+        vuetify.VBtn("Clip", click=addClip)
     #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
     with layout.content:
+        with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
+            html_view = paraview.VtkRemoteLocalView(
+                view,
+                namespace="demo",
+            )
+            ctrl.view_update = html_view.update
+            ctrl.view_reset_camera = html_view.reset_camera
+
         with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
             html_view = paraview.VtkRemoteLocalView(
                 view,
