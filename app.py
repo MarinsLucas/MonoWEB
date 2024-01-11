@@ -10,12 +10,13 @@ if '--virtual-env' in sys.argv:
   else:
     exec(open(virtualEnv).read(), {'__file__': virtualEnv})
 
+import asyncio
 
 import paraview.web.venv
 from pathlib import Path
 from paraview import simple
 
-from trame.app import get_server
+from trame.app import get_server, asynchronous
 from trame.widgets import vuetify, paraview
 from trame.ui.vuetify import SinglePageWithDrawerLayout
 import subprocess
@@ -29,15 +30,11 @@ monoalg_command = "./runmonoalg.sh"
 from paraview import simple
 
 simple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
-reader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
-reader.CellArrays = ['Scalars_']
-#reader.TimeArray = "Alguma coisa"
 
 # Rendering setup
 view = simple.GetRenderView()
 view.OrientationAxesVisibility = 0
 view = simple.Render()
-representation = simple.Show(reader, view)
 simple.ResetCamera()
 view.CenterOfRotation = view.CameraFocalPoint
 ########################################## Fim #################################
@@ -49,61 +46,90 @@ state, ctrl = server.state, server.controller
 time_step = 0
 step = 0
 
-def callback(mesh, Scalars_):
-    print("Clicou")
+animationscene = simple.GetAnimationScene()
+timekeeper = animationscene.TimeKeeper
+metadata = None
+time_values = []
 
-
+def load_data(**kwargs):
+    global time_values, representation, reader
+    reader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
+    reader.CellArrays = ['Scalars_']
+    reader.UpdatePipeline()
+    representation = simple.Show(reader, view)
+    time_values = list(timekeeper.TimestepValues)
+    
+    state.time_value = time_values[0]
+    state.times = len(time_values)-1
+    state.time = 0
+    state.play = False
+    simple.ResetCamera()
+    view.CenterOfRotation = view.CameraFocalPoint
 
 @ctrl.add("on_server_reload")
 def print_item(item):
     print("Clicked on", item)
 
+@state.change("time")
+def update_time(time, **kwargs):
+    if len(time_values) == 0:
+        return  
+    
+    if time >= len(time_values):
+        time = 0
+        state.time = time
+        state.play = False
+    time_value = time_values[time]
+    timekeeper.Time = time_value
+    state.time_value = time_value
+    
 
-#Não consegui testar isso ainda (pois minha simulação é muito pequena)
-def PlayPVD():
-    animationscene = simple.GetAnimationScene()
-    """     animationscene.Play()
-    html_view.update_image() """
-    for i in range(10):
-        animationscene.GoToNext()
-        html_view.update_image()
-        html_view.update
-    pass
+    ctrl.view_update_image()
+
+
+@state.change("play")
+@asynchronous.task 
+async def update_play(**kwargs):
+    while state.play:
+        with state:
+            state.time += 1
+            update_time(state.time)
+
+        await asyncio.sleep(0.1)
 
 def update_frame():
-    print(state.currentTime)
-    animationscene = simple.GetAnimationScene()
+    # animationscene = simple.GetAnimationScene()
     animationscene.AnimationTime = float(state.currentTime)
     html_view.update_image()
     pass
 
 @state.change("position")
 def update_contour(position , **kwargs):
-    animationscene = simple.GetAnimationScene()
+    # animationscene = simple.GetAnimationScene()
     animationscene.AnimationTime = position
     html_view.update_image()
     pass
 
 def subTime():
-    animationscene = simple.GetAnimationScene()
+    # animationscene = simple.GetAnimationScene()
     animationscene.GoToPrevious()
     html_view.update_image()
     pass
 
 def addTime():
-    animationscene = simple.GetAnimationScene()
+    # animationscene = simple.GetAnimationScene()
     animationscene.GoToNext()
     html_view.update_image()
     pass
 
 def lastTime():
-    animationscene = simple.GetAnimationScene()
+    # animationscene = simple.GetAnimationScene()
     animationscene.GoToLast()
     html_view.update_image()
     pass
 
 def firstTime():
-    animationscene = simple.GetAnimationScene()
+    # animationscene = simple.GetAnimationScene()
     animationscene.GoToFirst()
     html_view.update_image()
     pass
@@ -130,6 +156,11 @@ def addClip():
     representation = simple.Show(clip, view)
     html_view.update_image()
 
+def playAnimation():
+    if state.play:
+        state.play = False
+    else:
+        state.play = True
 
 def runMonoAlg3D():
     #Colocar os campos 
@@ -169,11 +200,11 @@ with SinglePageWithDrawerLayout(server) as layout:
                     click=subTime,
                     )
         #Tirei esse trem por enquanto, porque não consegui diminuir a largura dele
-        #vuetify.VTextField(v_model=("currentTime", 0), change=update_frame, number = True, width=20)
+        vuetify.VTextField(v_model=("time_value", 0), change=update_frame, number = True, width=20)
         vuetify.VBtn("+",
                      click=addTime) 
         #Tirei o botão que fazia a animação, porque eu não consegui fazer a animação (talvez estudar mais o paraview em si?)
-        #vuetify.VBtn("*", click=PlayPVD)
+        vuetify.VBtn("*", click=playAnimation)
         vuetify.VBtn("L", click=lastTime)
 
         vuetify.VBtn("Clip", click=addClip)
@@ -186,14 +217,11 @@ with SinglePageWithDrawerLayout(server) as layout:
             )
             ctrl.view_update = html_view.update
             ctrl.view_reset_camera = html_view.reset_camera
+            ctrl.view_update_image = html_view.update_image
 
-        with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
-            html_view = paraview.VtkRemoteLocalView(
-                view,
-                namespace="demo",
-            )
-            ctrl.view_update = html_view.update
-            ctrl.view_reset_camera = html_view.reset_camera
+#Chama função de carregar dados quando o servidor inicia
+ctrl.on_server_ready.add(load_data)
 
 #Inicia o servidor
 server.start()
+
