@@ -83,7 +83,6 @@ def update_time(time, **kwargs):
     timekeeper.Time = time_value
     state.time_value = time_value
     
-
     ctrl.view_update_image()
 
 
@@ -98,8 +97,10 @@ async def update_play(**kwargs):
         await asyncio.sleep(0.1)
 
 def update_frame():
-    # animationscene = simple.GetAnimationScene()
-    animationscene.AnimationTime = float(state.currentTime)
+    #Eu tenho o valor do tempo, de verdade
+    #preciso tranformar na iteração
+    dt = time_values[1] - time_values[0]
+    state.time = int(float(state.time_value)/dt)
     html_view.update_image()
     pass
 
@@ -111,26 +112,22 @@ def update_contour(position , **kwargs):
     pass
 
 def subTime():
-    # animationscene = simple.GetAnimationScene()
-    animationscene.GoToPrevious()
+    state.time -=1
     html_view.update_image()
     pass
 
 def addTime():
-    # animationscene = simple.GetAnimationScene()
-    animationscene.GoToNext()
+    state.time +=1
     html_view.update_image()
     pass
 
 def lastTime():
-    # animationscene = simple.GetAnimationScene()
-    animationscene.GoToLast()
+    state.time = state.times
     html_view.update_image()
     pass
 
 def firstTime():
-    # animationscene = simple.GetAnimationScene()
-    animationscene.GoToFirst()
+    state.time = 0
     html_view.update_image()
     pass
 
