@@ -17,10 +17,10 @@ from pathlib import Path
 from paraview import simple
 
 from trame.app import get_server, asynchronous
-from trame.widgets import vuetify, paraview
+from trame.widgets import vuetify, paraview, plotly
 from trame.ui.vuetify import SinglePageWithDrawerLayout
 import subprocess
-import plotly
+import plotly.graph_objects as go
 
 
 monoalg_command = "./runmonoalg.sh"
@@ -259,10 +259,21 @@ with SinglePageWithDrawerLayout(server) as layout:
                     namespace="demo",
                 )
             with vuetify.VCol(style="max-width: 50%",classes="ma-0 fill-height", align ="start", cols=6, sm=6):
-                html_view = paraview.VtkRemoteLocalView(
-                    view,
-                    namespace="demo",
+                x = [i for i in range(100)]
+                y = [x[i]**2 for i in range(100)]
+                fig = go.Figure()
+
+                fig.add_trace(go.Scatter(x=x, y=y, mode='lines', name='x²'))
+
+                fig.update_layout(
+                    title='Gráfico de x²',
+                    xaxis_title='x',
+                    yaxis_title='x²',
                 )
+
+                plot_view = plotly.Figure(fig)
+                plot_view.update(fig)
+
                 
                 
                 
