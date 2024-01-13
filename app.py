@@ -20,6 +20,7 @@ from trame.app import get_server, asynchronous
 from trame.widgets import vuetify, paraview
 from trame.ui.vuetify import SinglePageWithDrawerLayout
 import subprocess
+import plotly
 
 
 monoalg_command = "./runmonoalg.sh"
@@ -43,14 +44,55 @@ view.CenterOfRotation = view.CameraFocalPoint
 server = get_server()
 state, ctrl = server.state, server.controller
 
-time_step = 0
-step = 0
-
 animationscene = simple.GetAnimationScene()
 timekeeper = animationscene.TimeKeeper
 metadata = None
 time_values = []
 
+# Custom Classes for our problem
+class CardContainer(vuetify.VCard):
+    def __init__(self, **kwargs):
+        super().__init__(variant="outlined", **kwargs)
+        with self:
+            with vuetify.VCardTitle():
+                self.header = vuetify.VRow(
+                    classes="align-center pa-0 ma-0", style="min-height: 40px;"
+                )
+            vuetify.VDivider()
+            self.content = vuetify.VCardText()
+
+class PlotSelectionOverTime(CardContainer):
+    def __init__(self, run=None):
+        super().__init__(
+            classes="ma-4 flex-sm-grow-1", style="width: calc(100% - 504px);"
+        )
+        ctrl = self.server.controller
+
+        with self.header as header:
+            header.add_child("Plot Selection Over Time")
+
+        with self.content as content:
+            content.classes = "d-flex flex-shrink-1 pb-0"
+            # classes UI
+            _chart =  plotly.Figure(
+                style="width: 100%; height: 200px;",
+                v_show=("task_active === 'classification' && !input_needed",),
+                display_mode_bar=False,
+            ) 
+            ctrl.classification_chart_update = _chart.update
+
+            # similarity UI
+            vuetify.VProgressCircular(
+                "{{ Math.round(model_viz_similarity) }} %",
+                v_show=("task_active === 'similarity' && !input_needed",),
+                size=192,
+                width=15,
+                color="teal",
+                model_value=("model_viz_similarity", 0),
+            )
+
+
+# Load function, runs every time server starts
 def load_data(**kwargs):
     global time_values, representation, reader
     reader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
@@ -63,6 +105,7 @@ def load_data(**kwargs):
     state.times = len(time_values)-1
     state.time = 0
     state.play = False
+    state.animationStep = 10 #default = 1
     simple.ResetCamera()
     view.CenterOfRotation = view.CameraFocalPoint
 
@@ -91,7 +134,7 @@ def update_time(time, **kwargs):
 async def update_play(**kwargs):
     while state.play:
         with state:
-            state.time += 1
+            state.time += int(state.animationStep)
             update_time(state.time)
 
         await asyncio.sleep(0.1)
@@ -112,12 +155,12 @@ def update_contour(position , **kwargs):
     pass
 
 def subTime():
-    state.time -=1
+    state.time -= int(state.animationStep)
     html_view.update_image()
     pass
 
 def addTime():
-    state.time +=1
+    state.time += int(state.animationStep)
     html_view.update_image()
     pass
 
@@ -192,33 +235,41 @@ with SinglePageWithDrawerLayout(server) as layout:
 
         #Estava tentando colocar um icone, mas não consigo.
         #https://vuetifyjs.com/en/api/v-btn/#props
+
+        vuetify.VTextField(v_model=("animationStep", 10), hint="Animation Step", style="width= 25px; height: 100%")
         vuetify.VBtn("F", click=firstTime)
         vuetify.VBtn("-",
                     click=subTime,
                     )
-        #Tirei esse trem por enquanto, porque não consegui diminuir a largura dele
-        vuetify.VTextField(v_model=("time_value", 0), change=update_frame, number = True, width=20)
+        #não consegui diminuir a largura dele
+        vuetify.VTextField(v_model=("time_value", 0), change=update_frame, number = True, hint="Real Time (ms)", style="width: 25px; height: 100%") #Esse style não funciona no texto, mas funciona em outros elementos 
         vuetify.VBtn("+",
                      click=addTime) 
-        #Tirei o botão que fazia a animação, porque eu não consegui fazer a animação (talvez estudar mais o paraview em si?)
         vuetify.VBtn("*", click=playAnimation)
         vuetify.VBtn("L", click=lastTime)
 
         vuetify.VBtn("Clip", click=addClip)
+    
     #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
     with layout.content:
-        with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
-            html_view = paraview.VtkRemoteLocalView(
-                view,
-                namespace="demo",
-            )
-            ctrl.view_update = html_view.update
-            ctrl.view_reset_camera = html_view.reset_camera
-            ctrl.view_update_image = html_view.update_image
+        with vuetify.VContainer(fluid=True,classes="pa-0 fill-height"):
+            with vuetify.VCol(style="max-width: 50%",classes="ma-0 fill-height", align ="start", cols=6, sm=6):
+                html_view = paraview.VtkRemoteLocalView(
+                    view,
+                    namespace="demo",
+                )
+            with vuetify.VCol(style="max-width: 50%",classes="ma-0 fill-height", align ="start", cols=6, sm=6):
+                html_view = paraview.VtkRemoteLocalView(
+                    view,
+                    namespace="demo",
+                )
+                
+                
+                
+        
 
 #Chama função de carregar dados quando o servidor inicia
 ctrl.on_server_ready.add(load_data)
 
 #Inicia o servidor
 server.start()
-
