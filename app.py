@@ -11,7 +11,6 @@ if '--virtual-env' in sys.argv:
     exec(open(virtualEnv).read(), {'__file__': virtualEnv})
 
 import asyncio
-import configparser
 
 #debugimport paraview.web.venv
 from pathlib import Path
@@ -24,6 +23,7 @@ from trame.ui.vuetify import SinglePageWithDrawerLayout
 import subprocess
 import plotly.graph_objects as go
 
+import re
 
 monoalg_command = "./runmonoalg.sh"
 ########################### Configuando paraview #######################
@@ -63,6 +63,7 @@ library_file_options = ["shared_libs/libToRORd_dynCl_mixed_endo_mid_epi.so", "sh
 stimuli_main_function_options = ["stim_if_x_less_than", "stim_if_y_less_than", "stim_if_z_less_than", "stim_if_x_greater_equal_than","stim_if_y_greater_equal_than", "stim_if_z_greater_equal_than", "set_benchmark_spatial_stim", "stim_sphere",  "stim_x_y_limits", "stim_x_y_z_limits",
                                  "stim_if_inside_circle_than",  "stim_if_id_less_than", "stim_if_id_greater_than", "stim_concave"]
 
+examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protocol.ini", "EX03_plain_mesh_with_ischemia.ini", "EX04_3dwedge_healthy.ini"]
 #Variáveis dos estímulos:
 stimuli_main_function_selected_dicionary = {}
 state.n_estimulos = 0
@@ -162,7 +163,6 @@ def removestim():
 
 def clearstims():
     state.n_estimulos = 0
-    readini("EX01_plain_mesh_healthy")
     pass
 
 def addClip():
@@ -194,8 +194,22 @@ def playAnimation():
         state.play = True
 
 def readini(nome_arquivo):
-    config = configparser.ConfigParser()
-    config.read("./MonoAlg3D_C/example_config/" + str(nome_arquivo))
+    config = {}
+    with open("./MonoAlg3D_C/example_configs/" + str(nome_arquivo), 'r') as file:
+        current_section = None
+        for line in file:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            match = re.match(r'\[(\w+)\]', line)
+            if match:
+                current_section = match.group(1)
+                config[current_section] = {}
+            else:
+                parts = line.split('=', 1)
+                if len(parts) == 2:
+                    key, value = parts
+                    config[current_section][key.strip()] = value.strip()
 
     state.simulation_time = config["main"]["simulation_time"]
     state.print_rate = config["save_result"]["print_rate"]
@@ -203,13 +217,16 @@ def readini(nome_arquivo):
     state.sigma_y = config["assembly_matrix"]["sigma_y"]
     state.sigma_z = config["assembly_matrix"]["sigma_z"]
     state.domain_name = config["domain"]["name"]
+    state.start_dx = config["domain"]["start_dx"]
+    state.start_dy = config["domain"]["start_dy"]
+    state.start_dz = config["domain"]["start_dz"]
+    
     state.domain_matrix_main_function_selected = config["domain"]["main_function"]
     #read domain variáveis
-    if state.domain_matrix_main_function_selected == "intialize_grid_with_cuboid_mesh":
-        state.side_length_x = config["domain"]["side_lenght_x"]
-        state.side_length_y = config["domain"]["side_lenght_y"]
-        state.side_length_z = config["domain"]["side_lenght_z"]
-       
+    if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_mesh":
+        state.side_length_x = config["domain"]["side_length_x"]
+        state.side_length_y = config["domain"]["side_length_y"]
+        state.side_length_z = config["domain"]["side_length_z"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_spherical_mesh":
         state.diameter = config["domain"]["diameter"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_cable_mesh":
@@ -221,46 +238,46 @@ def readini(nome_arquivo):
         state.phi = config["domain"]["phi"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_source_sink_fibrotic_mesh":
         state.channel_width = config["domain"]["channel_width"]
-        
-        vuetify.VTextField(v_model=("channel_width", 1000), hint="Channel width", persistent_hint=True)
-        vuetify.VTextField(v_model=("channel_length", 1000), hint="Channel length", persistent_hint=True)
+        state.chanel_length = config["domain"]["channel_length"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh":
-        vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-        vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
-        vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
-        vuetify.VTextField(v_model=("border_zone_size", 1000), hint="Border Zone Size", persistent_hint=True)
-        vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
-        vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+        state.phi = config["domain"]["phi"]
+        state.plain_center = config["domain"]["plain_center"]
+        state.sphere_radius = config["domain"]["sphere_radius"]
+        state.border_zone_size = config["domain"]["border_zone_size"]
+        state.border_zone_radius = config["domain"]["border_zone_radius"]
+        state.seed = config["domain"]["seed"] #optional
     if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
-        vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-        vuetify.VTextField(v_model=("sphere_center", 1000), hint="sphere_center (optional)", persistent_hint=True)
-        vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
-        vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+        state.phi = config["domain"]["phi"]
+        state.sphere_center = config["domain"]["sphere_center"] #optional
+        state.sphere_radius = config["domain"]["sphere_radius"]
+        state.seed = config["domain"]["seed"] #optional
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating":
-        vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-        vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
-        vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
+        state.phi = config["domain"]["phi"]
+        state.plain_center = config["domain"]["plain_center"]
+        state.border_zone_radius = config["domain"]["border_zone_radius"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_fibrotic_region":
-        vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-        vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_min_x", 1000), hint="region_min_x", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_max_x", 1000), hint="region_max_x", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_min_y", 1000), hint="region_min_y", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_max_y", 1000), hint="region_max_y", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_min_z", 1000), hint="region_min_z", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_max_z", 1000), hint="region_max_z", persistent_hint=True)
+        state.phi = config["domain"]["phi"]
+        state.seed = config["domain"]["seed"]
+        state.region_min_x = config["domain"]["region_min_x"]
+        state.region_max_x = config["domain"]["region_max_x"]
+        state.region_min_y = config["domain"]["region_min_y"]
+        state.region_max_y = config["domain"]["region_max_y"]
+        state.region_min_z = config["domain"]["region_min_z"]
+        state.region_max_z = config["domain"]["region_max_z"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region":
-        vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-        vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_min_x", 1000), hint="region_min_x", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_max_x", 1000), hint="region_max_x", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_min_y", 1000), hint="region_min_y", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_max_y", 1000), hint="region_max_y", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_min_z", 1000), hint="region_min_z", persistent_hint=True)
-        vuetify.VTextField(v_model=("region_max_z", 1000), hint="region_max_z", persistent_hint=True)
-        vuetify.VTextField(v_model=("source_sink_min_x", 1000), hint="source_sink_min_x", persistent_hint=True)
-        vuetify.VTextField(v_model=("source_sink_max_x", 1000), hint="source_sink_max_x", persistent_hint=True)
-        vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
+        state.phi = config["domain"]["phi"]
+        state.seed = config["domain"]["seed"] #optional
+        state.region_min_x = config["domain"]["region_min_x"]
+        state.region_max_x = config["domain"]["region_max_x"]
+        state.region_min_y = config["domain"]["region_min_y"]
+        state.region_max_y = config["domain"]["region_max_y"]
+        state.region_min_z = config["domain"]["region_min_z"]
+        state.region_max_z = config["domain"]["region_max_z"]
+        state.source_sink_min_x = config["domain"]["source_sink_min_x"]
+        state.source_sink_max_x = config["domain"]["source_sink_max_x"]
+        state.side_length = config["domain"]["side_length"]
+    if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
+        state.side_length = config["domain"]["side_length"]
 
 
     state.library_file_select = config["ode_solver"]["library_file"]
@@ -309,9 +326,18 @@ def changed_n_estimulos(n_estimulos, **kwargs):
 def change_stim_model(stim_temp, **kwargs):
     update_domain_params()
 
+@state.change("example_selected")
+def change_example(example_selected, **kwargs):
+    readini(example_selected)
+
 def update_domain_params():
     with SinglePageWithDrawerLayout(server) as layout:
         with layout.drawer as dw:
+            vuetify.VSelect(
+                label="Examples",
+                v_model=("example_selected", "EX01_plain_mesh_healthy.ini"),
+                items=("examples_options", examples_options)
+            )
             #Main: simulation_time só
             vuetify.VTextField(v_model=("simulation_time", 1000), hint="Simulation time", persistent_hint=True)
             
@@ -385,6 +411,8 @@ def update_domain_params():
                 vuetify.VTextField(v_model=("region_max_z", 1000), hint="region_max_z", persistent_hint=True)
                 vuetify.VTextField(v_model=("source_sink_min_x", 1000), hint="source_sink_min_x", persistent_hint=True)
                 vuetify.VTextField(v_model=("source_sink_max_x", 1000), hint="source_sink_max_x", persistent_hint=True)
+                vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
+            if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
                 vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
 
             #ode_solver
