@@ -13,10 +13,10 @@ if '--virtual-env' in sys.argv:
 import asyncio
 import configparser
 
-import paraview.web.venv
+#debugimport paraview.web.venv
 from pathlib import Path
-from paraview import simple
-from paraview.selection import *
+#debugfrom paraview import simple
+#debugfrom paraview.selection import *
 
 from trame.app import get_server, asynchronous
 from trame.widgets import vuetify, paraview, plotly
@@ -30,27 +30,27 @@ monoalg_command = "./runmonoalg.sh"
 # -----------------------------------------------------------------------------
 # ParaView pipeline
 # -----------------------------------------------------------------------------
-from paraview import simple
+#debugfrom paraview import simple
 
-simple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
+#debugsimple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
 
 # Rendering setup
-view = simple.GetRenderView()
-view.OrientationAxesVisibility = 0
-view = simple.Render()
-simple.ResetCamera()
-view.CenterOfRotation = view.CameraFocalPoint
+#debugview = simple.GetRenderView()
+#debugview.OrientationAxesVisibility = 0
+#debugview = simple.Render()
+#debugsimple.ResetCamera()
+#debugview.CenterOfRotation = view.CameraFocalPoint
 ########################################## Fim #################################
 
 #Inicializa o servidor
 server = get_server()
 state, ctrl = server.state, server.controller
 
-animationscene = simple.GetAnimationScene()
-timekeeper = animationscene.TimeKeeper
-metadata = None
-time_values = []
-show_graph = False
+#debuganimationscene = simple.GetAnimationScene()
+#debugtimekeeper = animationscene.TimeKeeper
+#debugmetadata = None
+#debugtime_values = []
+#debugshow_graph = False
 domain_matrix_main_function_options = ["intialize_grid_with_cuboid_mesh", "initialize_grid_with_spherical_mesh", "initialize_grid_with_square_mesh", "initialize_grid_with_cable_mesh", "initialize_grid_with_rabbit_mesh",
                                        "initialize_grid_with_benchmark_mesh", "initialize_grid_with_plain_fibrotic_mesh", "initialize_grid_with_plain_fibrotic_mesh_from_file", "initialize_grid_with_plain_source_sink_fibrotic_mesh", 
                                        "initialize_grid_with_plain_and_sphere_fibrotic_mesh", "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh", "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating", "initialize_grid_with_square_mesh_and_fibrotic_region",
@@ -62,47 +62,6 @@ library_file_options = ["shared_libs/libToRORd_dynCl_mixed_endo_mid_epi.so", "sh
 
 stimuli_main_function_options = ["stim_if_x_less_than", "stim_if_y_less_than", "stim_if_z_less_than", "stim_if_x_greater_equal_than","stim_if_y_greater_equal_than", "stim_if_z_greater_equal_than", "set_benchmark_spatial_stim", "stim_sphere",  "stim_x_y_limits", "stim_x_y_z_limits",
                                  "stim_if_inside_circle_than",  "stim_if_id_less_than", "stim_if_id_greater_than", "stim_concave"]
-# Custom Classes for our problem
-class CardContainer(vuetify.VCard):
-    def __init__(self, **kwargs):
-        super().__init__(variant="outlined", **kwargs)
-        with self:
-            with vuetify.VCardTitle():
-                self.header = vuetify.VRow(
-                    classes="align-center pa-0 ma-0", style="min-height: 40px;"
-                )
-            vuetify.VDivider()
-            self.content = vuetify.VCardText()
-
-class PlotSelectionOverTime(CardContainer):
-    def __init__(self, run=None):
-        super().__init__(
-            classes="ma-4 flex-sm-grow-1", style="width: calc(100% - 504px);"
-        )
-        ctrl = self.server.controller
-
-        with self.header as header:
-            header.add_child("Plot Selection Over Time")
-
-        with self.content as content:
-            content.classes = "d-flex flex-shrink-1 pb-0"
-            # classes UI
-            _chart =  plotly.Figure(
-                style="width: 100%; height: 200px;",
-                v_show=("task_active === 'classification' && !input_needed",),
-                display_mode_bar=False,
-            ) 
-            ctrl.classification_chart_update = _chart.update
-
-            # similarity UI
-            vuetify.VProgressCircular(
-                "{{ Math.round(model_viz_similarity) }} %",
-                v_show=("task_active === 'similarity' && !input_needed",),
-                size=192,
-                width=15,
-                color="teal",
-                model_value=("model_viz_similarity", 0),
-            )
 
 #Variáveis dos estímulos:
 stimuli_main_function_selected_dicionary = {}
@@ -110,19 +69,19 @@ state.n_estimulos = 0
 # Load function, runs every time server starts
 def load_data(**kwargs):
     global time_values, representation, reader, show_graph
-    reader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
-    reader.CellArrays = ['Scalars_']
-    reader.UpdatePipeline()
-    representation = simple.Show(reader, view)
-    time_values = list(timekeeper.TimestepValues)
+    #debugreader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
+    #debugreader.CellArrays = ['Scalars_']
+    #debugreader.UpdatePipeline()
+    #debugrepresentation = simple.Show(reader, view)
+    #debugtime_values = list(timekeeper.TimestepValues)
     
-    state.time_value = time_values[0]
-    state.times = len(time_values)-1
+    state.time_value = 0 #debugtime_values[0]
+    state.times = 0 #debuglen(time_values)-1
     state.time = 0
     state.play = False
     state.animationStep = 10 #default = 1
-    simple.ResetCamera()
-    view.CenterOfRotation = view.CameraFocalPoint
+    #debugsimple.ResetCamera()
+    #debugview.CenterOfRotation = view.CameraFocalPoint
     state.n_estimulos = 0
     
 @ctrl.add("on_server_reload")
@@ -233,6 +192,7 @@ def playAnimation():
         state.play = False
     else:
         state.play = True
+
 def readini(nome_arquivo):
     config = configparser.ConfigParser()
     config.read("./MonoAlg3D_C/example_config/" + str(nome_arquivo))
@@ -434,7 +394,7 @@ def update_domain_params():
                 items=("library_file_options", library_file_options)
             )
 
-            #ecg
+            #ecg\
 
             for i in range(int(state.n_estimulos)):
                 
@@ -545,13 +505,9 @@ def update_domain_params():
         #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
         with layout.content:
             with vuetify.VContainer(fluid=True,classes="pa-0 fill-height"):
-                with vuetify.VCol(style="max-width: 50%",classes="ma-0 fill-height", align ="start", cols=6, sm=6):
-                    global html_view
-                    html_view = paraview.VtkRemoteLocalView(
-                        view,
-                        namespace="demo",
-                    )
-                with vuetify.VCol(style="max-width: 50%",classes="ma-0 fill-height", align ="start", cols=6, sm=6):
+                global html_view
+                #debughtml_view = paraview.VtkRemoteLocalView(view,namespace="demo")
+                """ with vuetify.VCol(style="max-width: 50%",classes="ma-0 fill-height", align ="start", cols=6, sm=6):
                     x = [i for i in range(100)]
                     y = [x[i]**2 for i in range(100)]
                     fig = go.Figure()
@@ -565,7 +521,7 @@ def update_domain_params():
                     )
 
                     plot_view = plotly.Figure(fig)
-                    plot_view.update(fig)
+                    plot_view.update(fig) """
 
 update_domain_params()
 
