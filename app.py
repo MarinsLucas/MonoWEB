@@ -66,6 +66,7 @@ stimuli_main_function_options = ["stim_if_x_less_than", "stim_if_y_less_than", "
 examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protocol.ini", "EX03_plain_mesh_with_ischemia.ini", "EX04_3dwedge_healthy.ini"]
 #Variáveis dos estímulos:
 stimuli_main_function_selected_dicionary = {}
+
 state.n_estimulos = 0
 # Load function, runs every time server starts
 def load_data(**kwargs):
@@ -314,25 +315,31 @@ def runMonoAlg3D():
     #saida = subprocess.check_output(monoalg_command, shell=True, universal_newlines=True)
     #print(saida)
     pass
-@state.change("domain_matrix_main_function_selected")
-def changed_domain_function(domain_matrix_main_function_selected, **kwargs):
-    update_domain_params()
 
-@state.change("n_estimulos")
-def changed_n_estimulos(n_estimulos, **kwargs):
-    update_domain_params()
-
-@state.change("stim_temp")
-def change_stim_model(stim_temp, **kwargs):
-    update_domain_params()
 
 @state.change("example_selected")
 def change_example(example_selected, **kwargs):
     readini(example_selected)
 
+@state.change("advanced_config")
+@state.change("domain_matrix_main_function_selected")
+@state.change("n_estimulos")
+@state.change("stimuli_main_function_selected1")
+@state.change("stimuli_main_function_selected2")
+@state.change("stimuli_main_function_selected3")
+@state.change("stimuli_main_function_selected4")
+@state.change("stimuli_main_function_selected5")
+@state.change("stimuli_main_function_selected6")
+@state.change("stimuli_main_function_selected7")
+@state.change("stimuli_main_function_selected8")
+@state.change("stimuli_main_function_selected9")
+@state.change("stimuli_main_function_selected0")
+def s0(**kwargs):
+    update_domain_params()
+
 def update_domain_params():
     with SinglePageWithDrawerLayout(server) as layout:
-        with layout.drawer as dw:
+        with layout.drawer:
             vuetify.VSelect(
                 label="Examples",
                 v_model=("example_selected", "EX01_plain_mesh_healthy.ini"),
@@ -341,139 +348,137 @@ def update_domain_params():
             #Main: simulation_time só
             vuetify.VTextField(v_model=("simulation_time", 1000), hint="Simulation time", persistent_hint=True)
             
-            #save_result: print_rate
-            vuetify.VTextField(v_model=("print_rate", 1000), hint="Save rate", persistent_hint=True)
+            vuetify.VCheckbox(v_model=("advanced_config", False))
+            if state.advanced_config == True:
+                #save_result: print_rate
+                vuetify.VTextField(v_model=("print_rate", 1000), hint="Save rate", persistent_hint=True)
 
-            #assembly_matrix
-            vuetify.VTextField(v_model=("sigma_x", 1000), hint="Sigma X", persistent_hint=True)
-            vuetify.VTextField(v_model=("sigma_y", 1000), hint="Sigma Y", persistent_hint=True)
-            vuetify.VTextField(v_model=("sigma_z", 1000), hint="Sigma Z", persistent_hint=True)
+                #assembly_matrix
+                vuetify.VTextField(v_model=("sigma_x", 1000), hint="Sigma X", persistent_hint=True)
+                vuetify.VTextField(v_model=("sigma_y", 1000), hint="Sigma Y", persistent_hint=True)
+                vuetify.VTextField(v_model=("sigma_z", 1000), hint="Sigma Z", persistent_hint=True)
             
-            #domain
-            vuetify.VTextField(v_model=("domain_name", 1000), hint="Domain Name", persistent_hint=True)
-            vuetify.VSelect(
-                label="Domain Main Function",
-                v_model=("domain_matrix_main_function_selected", "intialize_grid_with_cuboid_mesh"),
-                items=("domain_matrix_main_function_options", domain_matrix_main_function_options)
-            )
-            vuetify.VTextField(v_model=("start_dx", 1000), hint="Start dx", persistent_hint=True)
-            vuetify.VTextField(v_model=("start_dy", 1000), hint="Start dy", persistent_hint=True)
-            vuetify.VTextField(v_model=("start_dz", 1000), hint="Start dz", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "intialize_grid_with_cuboid_mesh":
-                vuetify.VTextField(v_model=("side_length_x", 1000), hint="Side Lenght X", persistent_hint=True)
-                vuetify.VTextField(v_model=("side_length_y", 1000), hint="Side Lenght Y", persistent_hint=True)
-                vuetify.VTextField(v_model=("side_length_z", 1000), hint="Side Lenght Z", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_spherical_mesh":
-                vuetify.VTextField(v_model=("diameter", 1000), hint="Diameter", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_cable_mesh":
-                vuetify.VTextField(v_model=("cable_length", 1000), hint="Cable Length", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_rabbit_mesh" or state.domain_matrix_main_function_selected  == "initialize_grid_with_benchmark_mesh":
-                vuetify.VTextField(v_model=("maximum_discretization", 1000), hint="Maximum discretization (optional)", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_fibrotic_mesh":
-                vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
-                vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_source_sink_fibrotic_mesh":
-                vuetify.VTextField(v_model=("channel_width", 1000), hint="Channel width", persistent_hint=True)
-                vuetify.VTextField(v_model=("channel_length", 1000), hint="Channel length", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh":
-                vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-                vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
-                vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
-                vuetify.VTextField(v_model=("border_zone_size", 1000), hint="Border Zone Size", persistent_hint=True)
-                vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
-                vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
-                vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-                vuetify.VTextField(v_model=("sphere_center", 1000), hint="sphere_center (optional)", persistent_hint=True)
-                vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
-                vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating":
-                vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-                vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
-                vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_fibrotic_region":
-                vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-                vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_min_x", 1000), hint="region_min_x", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_max_x", 1000), hint="region_max_x", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_min_y", 1000), hint="region_min_y", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_max_y", 1000), hint="region_max_y", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_min_z", 1000), hint="region_min_z", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_max_z", 1000), hint="region_max_z", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region":
-                vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
-                vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_min_x", 1000), hint="region_min_x", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_max_x", 1000), hint="region_max_x", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_min_y", 1000), hint="region_min_y", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_max_y", 1000), hint="region_max_y", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_min_z", 1000), hint="region_min_z", persistent_hint=True)
-                vuetify.VTextField(v_model=("region_max_z", 1000), hint="region_max_z", persistent_hint=True)
-                vuetify.VTextField(v_model=("source_sink_min_x", 1000), hint="source_sink_min_x", persistent_hint=True)
-                vuetify.VTextField(v_model=("source_sink_max_x", 1000), hint="source_sink_max_x", persistent_hint=True)
-                vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
-            if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
-                vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
+                #domain
+                vuetify.VTextField(v_model=("domain_name", 1000), hint="Domain Name", persistent_hint=True)
+                vuetify.VSelect(
+                    label="Domain Main Function",
+                    v_model=("domain_matrix_main_function_selected", "intialize_grid_with_cuboid_mesh"),
+                    items=("domain_matrix_main_function_options", domain_matrix_main_function_options)
+                )
+                vuetify.VTextField(v_model=("start_dx", 1000), hint="Start dx", persistent_hint=True)
+                vuetify.VTextField(v_model=("start_dy", 1000), hint="Start dy", persistent_hint=True)
+                vuetify.VTextField(v_model=("start_dz", 1000), hint="Start dz", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "intialize_grid_with_cuboid_mesh":
+                    vuetify.VTextField(v_model=("side_length_x", 1000), hint="Side Lenght X", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length_y", 1000), hint="Side Lenght Y", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length_z", 1000), hint="Side Lenght Z", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_spherical_mesh":
+                    vuetify.VTextField(v_model=("diameter", 1000), hint="Diameter", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_cable_mesh":
+                    vuetify.VTextField(v_model=("cable_length", 1000), hint="Cable Length", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_rabbit_mesh" or state.domain_matrix_main_function_selected  == "initialize_grid_with_benchmark_mesh":
+                    vuetify.VTextField(v_model=("maximum_discretization", 1000), hint="Maximum discretization (optional)", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_fibrotic_mesh":
+                    vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+                    vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_source_sink_fibrotic_mesh":
+                    vuetify.VTextField(v_model=("channel_width", 1000), hint="Channel width", persistent_hint=True)
+                    vuetify.VTextField(v_model=("channel_length", 1000), hint="Channel length", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh":
+                    vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
+                    vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
+                    vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
+                    vuetify.VTextField(v_model=("border_zone_size", 1000), hint="Border Zone Size", persistent_hint=True)
+                    vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
+                    vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
+                    vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
+                    vuetify.VTextField(v_model=("sphere_center", 1000), hint="sphere_center (optional)", persistent_hint=True)
+                    vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
+                    vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating":
+                    vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
+                    vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
+                    vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_fibrotic_region":
+                    vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
+                    vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_min_x", 1000), hint="region_min_x", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_max_x", 1000), hint="region_max_x", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_min_y", 1000), hint="region_min_y", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_max_y", 1000), hint="region_max_y", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_min_z", 1000), hint="region_min_z", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_max_z", 1000), hint="region_max_z", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region":
+                    vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
+                    vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_min_x", 1000), hint="region_min_x", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_max_x", 1000), hint="region_max_x", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_min_y", 1000), hint="region_min_y", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_max_y", 1000), hint="region_max_y", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_min_z", 1000), hint="region_min_z", persistent_hint=True)
+                    vuetify.VTextField(v_model=("region_max_z", 1000), hint="region_max_z", persistent_hint=True)
+                    vuetify.VTextField(v_model=("source_sink_min_x", 1000), hint="source_sink_min_x", persistent_hint=True)
+                    vuetify.VTextField(v_model=("source_sink_max_x", 1000), hint="source_sink_max_x", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
+                    vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
 
-            #ode_solver
-            vuetify.VSelect(
-                label="Model",
-                v_model=("library_file_select", "opção3"),
-                items=("library_file_options", library_file_options)
-            )
-
-            #ecg\
+                #ode_solver
+                vuetify.VSelect(
+                    label="Model",
+                    v_model=("library_file_select", "opção3"),
+                    items=("library_file_options", library_file_options)
+                )
 
             for i in range(int(state.n_estimulos)):
-                
                 vuetify.VTextField(v_model=("start_stim_"+str(i), 1000), hint="Start Stim", persistent_hint=True)
                 vuetify.VTextField(v_model=("duration_"+str(i), 1000), hint="Duration", persistent_hint=True)
                 vuetify.VTextField(v_model=("current_"+str(i), 1000), hint="Current", persistent_hint=True)
                 vuetify.VSelect(
                     label="Stimuli main function",
-                    v_model=("stim_temp", "stim_if_x_less_than"),
+                    v_model=("stimuli_main_function_selected"+str(i), "stim_if_x_less_than"),
                     items=("stimuli_main_function_options", stimuli_main_function_options),
                 )
-                stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] = state.stim_temp
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_x_less_than":
-                    vuetify.VTextField(v_model=(stimuli_main_function_selected_dicionary["x_limit"+str(i)], 1000), hint="x_limit", persistent_hint=True)                    
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_y_less_than":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_x_less_than":
+                    vuetify.VTextField(v_model=("x_limit"+str(i), 1000), hint="x_limit", persistent_hint=True)                    
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_y_less_than":
                     vuetify.VTextField(v_model=("y_limit"+str(i), 1000), hint="y_limit", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_z_less_than":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_z_less_than":
                     vuetify.VTextField(v_model=("z_limit"+str(i), 1000), hint="z_limit", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_x_greater_equal_than":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_x_greater_equal_than":
                     vuetify.VTextField(v_model=("x_limit"+str(i), 1000), hint="x_limit", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_y_greater_equal_than":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_y_greater_equal_than":
                     vuetify.VTextField(v_model=("y_limit"+str(i), 1000), hint="y_limit", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_z_greater_equal_than":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_z_greater_equal_than":
                     vuetify.VTextField(v_model=("z_limit"+str(i), 1000), hint="z_limit", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_sphere":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_sphere":
                     vuetify.VTextField(v_model=("center_x"+str(i), 1000), hint="center_x", persistent_hint=True)
                     vuetify.VTextField(v_model=("center_y"+str(i), 1000), hint="center_y", persistent_hint=True)
                     vuetify.VTextField(v_model=("center_z"+str(i), 1000), hint="center_z", persistent_hint=True)
                     vuetify.VTextField(v_model=("radius"+str(i), 1000), hint="radius", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_x_y_limits":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_x_y_limits":
                     vuetify.VTextField(v_model=("max_x"+str(i), 1000), hint="max_x", persistent_hint=True)
                     vuetify.VTextField(v_model=("min_x"+str(i), 1000), hint="min_x", persistent_hint=True)
                     vuetify.VTextField(v_model=("max_y"+str(i), 1000), hint="max_y", persistent_hint=True)
                     vuetify.VTextField(v_model=("min_y"+str(i), 1000), hint="min_y", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_x_y_z_limits":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_x_y_z_limits":
                     vuetify.VTextField(v_model=("max_x"+str(i), 1000), hint="max_x", persistent_hint=True)
                     vuetify.VTextField(v_model=("min_x"+str(i), 1000), hint="min_x", persistent_hint=True)
                     vuetify.VTextField(v_model=("max_y"+str(i), 1000), hint="max_y", persistent_hint=True)
                     vuetify.VTextField(v_model=("min_y"+str(i), 1000), hint="min_y", persistent_hint=True)
                     vuetify.VTextField(v_model=("max_z"+str(i), 1000), hint="max_z", persistent_hint=True)
                     vuetify.VTextField(v_model=("min_z"+str(i), 1000), hint="min_z", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_inside_circle_than":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_inside_circle_than":
                     vuetify.VTextField(v_model=("center_x"+str(i), 1000), hint="center_x", persistent_hint=True)
                     vuetify.VTextField(v_model=("center_y"+str(i), 1000), hint="center_y", persistent_hint=True)
                     vuetify.VTextField(v_model=("center_z"+str(i), 1000), hint="center_z", persistent_hint=True)
                     vuetify.VTextField(v_model=("radius"+str(i), 1000), hint="radius", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_id_less_than":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_id_less_than":
                     vuetify.VTextField(v_model=("id_limit"+str(i), 1000), hint="id_limit", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_if_id_greater_than":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_if_id_greater_than":
                     vuetify.VTextField(v_model=("id_limit"+str(i), 1000), hint="id_limit", persistent_hint=True)
-                if stimuli_main_function_selected_dicionary["stimuli_main_function_selected_"+str(i)] == "stim_concave":
+                if state["stimuli_main_function_selected"+str(i)] == "stim_concave":
                     vuetify.VTextField(v_model=("max_x_1"+str(i), 1000), hint="max_x_1", persistent_hint=True)
                     vuetify.VTextField(v_model=("min_x_1"+str(i), 1000), hint="min_x_1", persistent_hint=True)
                     vuetify.VTextField(v_model=("max_y_1"+str(i), 1000), hint="max_y_1", persistent_hint=True)
@@ -496,10 +501,10 @@ def update_domain_params():
             with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
                 vuetify.VBtn("Clear Stim", click=clearstims)
 
-            vuetify.VBtn("Executar", click=runMonoAlg3D)
-        with layout.toolbar:
-            vuetify.VSpacer()
-    
+            vuetify.VBtn("Run", click=runMonoAlg3D)
+        with layout.toolbar as tb: 
+            #Não é assim que funciona
+            #tb.title = vuetify.VToolbarTitle("MonoWEB")
             #Barra de carregamento abaixo do header
             vuetify.VProgressLinear(
                 indeterminate=True,
@@ -528,7 +533,8 @@ def update_domain_params():
 
             vuetify.VBtn("L", click=lastTime)
 
-            vuetify.VBtn("Clip", click=addClip)
+            #Tirei o clip, não está funcionando ainda
+            #vuetify.VBtn("Clip", click=addClip)
         
         #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
         with layout.content:
