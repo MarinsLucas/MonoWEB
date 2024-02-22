@@ -339,6 +339,9 @@ def s0(**kwargs):
 
 def update_domain_params():
     with SinglePageWithDrawerLayout(server) as layout:
+        
+        layout.title.set_text("MonoWEB")
+
         with layout.drawer:
             vuetify.VSelect(
                 label="Examples",
@@ -348,7 +351,9 @@ def update_domain_params():
             #Main: simulation_time só
             vuetify.VTextField(v_model=("simulation_time", 1000), hint="Simulation time", persistent_hint=True)
             
-            vuetify.VCheckbox(v_model=("advanced_config", False))
+            vuetify.VCheckbox(v_model=("advanced_config", False), label="Configurações Avançadas")
+
+
             if state.advanced_config == True:
                 #save_result: print_rate
                 vuetify.VTextField(v_model=("print_rate", 1000), hint="Save rate", persistent_hint=True)
@@ -494,17 +499,89 @@ def update_domain_params():
             #duration
             #current
             #main_function = dropdown
+                    
+            vuetify.VCheckbox(
+                    v_model=("viewMode", "local"),
+                    on_icon="mdi-lan-disconnect",
+                    off_icon="mdi-lan-connect",
+                    true_value="local",
+                    false_value="remote",
+                    classes="mx-1",
+                    hide_details=True,
+                    dense=True,
+                )
+            
+            """ PRA TESTAR
+            
+            vuetify.VSelect(
+                        # Representation
+                        v_model=("contour_representation", Representation.Surface),
+                        items=(
+                            "representations",
+                            [
+                                {"text": "Points", "value": 0},
+                                {"text": "Wireframe", "value": 1},
+                                {"text": "Surface", "value": 2},
+                                {"text": "SurfaceWithEdges", "value": 3},
+                            ],
+                        ),
+                        label="Representation",
+                        hide_details=True,
+                        dense=True,
+                        outlined=True,
+                        classes="pt-1",
+                    )
+                    with vuetify.VRow(classes="pt-2", dense=True):
+                        with vuetify.VCol(cols="6"):
+                            vuetify.VSelect(
+                                # Color By
+                                label="Color by",
+                                v_model=("contour_color_array_idx", 0),
+                                items=("array_list", dataset_arrays),
+                                hide_details=True,
+                                dense=True,
+                                outlined=True,
+                                classes="pt-1",
+                            )
+                        with vuetify.VCol(cols="6"):
+                            vuetify.VSelect(
+                                # Color Map
+                                label="Colormap",
+                                v_model=("contour_color_preset", LookupTable.Rainbow),
+                                items=(
+                                    "colormaps",
+                                    [
+                                        {"text": "Rainbow", "value": 0},
+                                        {"text": "Inv Rainbow", "value": 1},
+                                        {"text": "Greyscale", "value": 2},
+                                        {"text": "Inv Greyscale", "value": 3},
+                                    ],
+                                ),
+                                hide_details=True,
+                                dense=True,
+                                outlined=True,
+                                classes="pt-1",
+                            ) 
+                            
+                            
+                        
+                        """
+
+
             with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
                 vuetify.VBtn("Add Stim", click=addstim)
+
             with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
                 vuetify.VBtn("Remove Stim", click=removestim)
+
             with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
                 vuetify.VBtn("Clear Stim", click=clearstims)
 
-            vuetify.VBtn("Run", click=runMonoAlg3D)
+            with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
+                vuetify.VBtn("Run", click=runMonoAlg3D)
+
         with layout.toolbar as tb: 
-            #Não é assim que funciona
-            #tb.title = vuetify.VToolbarTitle("MonoWEB")
+
             #Barra de carregamento abaixo do header
             vuetify.VProgressLinear(
                 indeterminate=True,
@@ -516,25 +593,35 @@ def update_domain_params():
             #Estava tentando colocar um icone, mas não consigo.
             #https://vuetifyjs.com/en/api/v-btn/#props
 
-            vuetify.VTextField(v_model=("animationStep", 10), hint="Animation Step", style="width= 25px; height: 100%")
-            vuetify.VBtn("F", click=firstTime)
-            vuetify.VBtn("-",
-                        click=subTime,
-                        )
+
+            vuetify.VDivider(vertical=True, classes="mx-5")
+
+            vuetify.VTextField(v_model=("animationStep", 10), hint="Animation Step", persistent_hint=True)
+
+            vuetify.VDivider(vertical=True, classes="mx-5")
+            
+            with vuetify.VBtn(icon=True, click=firstTime):
+                vuetify.VIcon("mdi-alpha-f")
+
+            with vuetify.VBtn(icon=True, click=subTime):
+                vuetify.VIcon("mdi-chevron-left")
+            
             #não consegui diminuir a largura dele
-            vuetify.VTextField(v_model=("time_value", 0), change=update_frame, number = True, hint="Real Time (ms)", style="width: 25px; height: 100%") #Esse style não funciona no texto, mas funciona em outros elementos 
-            vuetify.VBtn("+",
-                        click=addTime) 
+            vuetify.VTextField(v_model=("time_value", 0), change=update_frame, number = True, hint="Real Time (ms)", persistent_hint=True, style="width: 5px; height: 100%") #Esse style não funciona no texto, mas funciona em outros elementos 
+            
+            with vuetify.VBtn(icon=True, click=addTime):
+                vuetify.VIcon("mdi-chevron-right")
 
             with vuetify.VBtn(
                 icon=True,
                 click=playAnimation,):
                 vuetify.VIcon("mdi-play")
 
-            vuetify.VBtn("L", click=lastTime)
+            with vuetify.VBtn(icon=True, click=lastTime):
+                vuetify.VIcon("mdi-undo-variant")
 
-            #Tirei o clip, não está funcionando ainda
-            #vuetify.VBtn("Clip", click=addClip)
+            with vuetify.VBtn(icon=True, click=addClip):
+                vuetify.VIcon("mdi-angle-acute")
         
         #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
         with layout.content:
