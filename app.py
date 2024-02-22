@@ -343,18 +343,31 @@ def update_domain_params():
         layout.title.set_text("MonoWEB")
 
         with layout.drawer:
-            vuetify.VSelect(
-                label="Examples",
-                v_model=("example_selected", "EX01_plain_mesh_healthy.ini"),
-                items=("examples_options", examples_options)
-            )
-            #Main: simulation_time só
-            vuetify.VTextField(v_model=("simulation_time", 1000), hint="Simulation time", persistent_hint=True)
-            
-            vuetify.VCheckbox(v_model=("advanced_config", False), label="Configurações Avançadas")
 
+            vuetify.VSelect(
+                items=("examples_options", examples_options),
+                label="Examples",
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-5",
+                v_model=("example_selected", "EX01_plain_mesh_healthy.ini"),
+            ) 
+
+            #Main: simulation_time só
+            vuetify.VTextField(
+                v_model=("simulation_time", 1000), 
+                hint="Simulation time", 
+                persistent_hint=True,
+            )
+            
+            vuetify.VCheckbox(v_model=("advanced_config", False), label="Advanced Settings")
 
             if state.advanced_config == True:
+
+                with vuetify.VList():
+                    vuetify.VSubheader("Seção 1")
+
                 #save_result: print_rate
                 vuetify.VTextField(v_model=("print_rate", 1000), hint="Save rate", persistent_hint=True)
 
@@ -363,13 +376,19 @@ def update_domain_params():
                 vuetify.VTextField(v_model=("sigma_y", 1000), hint="Sigma Y", persistent_hint=True)
                 vuetify.VTextField(v_model=("sigma_z", 1000), hint="Sigma Z", persistent_hint=True)
             
-                #domain
-                vuetify.VTextField(v_model=("domain_name", 1000), hint="Domain Name", persistent_hint=True)
+                with vuetify.VList(classes="pt-5"):
+                    vuetify.VSubheader("Seção 2")
+
                 vuetify.VSelect(
                     label="Domain Main Function",
                     v_model=("domain_matrix_main_function_selected", "intialize_grid_with_cuboid_mesh"),
-                    items=("domain_matrix_main_function_options", domain_matrix_main_function_options)
-                )
+                    items=("domain_matrix_main_function_options", domain_matrix_main_function_options),
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-5",
+                ) 
+
                 vuetify.VTextField(v_model=("start_dx", 1000), hint="Start dx", persistent_hint=True)
                 vuetify.VTextField(v_model=("start_dy", 1000), hint="Start dy", persistent_hint=True)
                 vuetify.VTextField(v_model=("start_dz", 1000), hint="Start dz", persistent_hint=True)
@@ -431,20 +450,32 @@ def update_domain_params():
 
                 #ode_solver
                 vuetify.VSelect(
+                    items=("library_file_options", library_file_options),
                     label="Model",
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-5",
                     v_model=("library_file_select", "opção3"),
-                    items=("library_file_options", library_file_options)
-                )
+                ) 
 
+
+            #a ver com ESTÍMULOS
             for i in range(int(state.n_estimulos)):
                 vuetify.VTextField(v_model=("start_stim_"+str(i), 1000), hint="Start Stim", persistent_hint=True)
                 vuetify.VTextField(v_model=("duration_"+str(i), 1000), hint="Duration", persistent_hint=True)
                 vuetify.VTextField(v_model=("current_"+str(i), 1000), hint="Current", persistent_hint=True)
+                
                 vuetify.VSelect(
                     label="Stimuli main function",
                     v_model=("stimuli_main_function_selected"+str(i), "stim_if_x_less_than"),
                     items=("stimuli_main_function_options", stimuli_main_function_options),
-                )
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-5",
+                ) 
+
                 if state["stimuli_main_function_selected"+str(i)] == "stim_if_x_less_than":
                     vuetify.VTextField(v_model=("x_limit"+str(i), 1000), hint="x_limit", persistent_hint=True)                    
                 if state["stimuli_main_function_selected"+str(i)] == "stim_if_y_less_than":
@@ -499,74 +530,6 @@ def update_domain_params():
             #duration
             #current
             #main_function = dropdown
-                    
-            vuetify.VCheckbox(
-                    v_model=("viewMode", "local"),
-                    on_icon="mdi-lan-disconnect",
-                    off_icon="mdi-lan-connect",
-                    true_value="local",
-                    false_value="remote",
-                    classes="mx-1",
-                    hide_details=True,
-                    dense=True,
-                )
-            
-            """ PRA TESTAR
-            
-            vuetify.VSelect(
-                        # Representation
-                        v_model=("contour_representation", Representation.Surface),
-                        items=(
-                            "representations",
-                            [
-                                {"text": "Points", "value": 0},
-                                {"text": "Wireframe", "value": 1},
-                                {"text": "Surface", "value": 2},
-                                {"text": "SurfaceWithEdges", "value": 3},
-                            ],
-                        ),
-                        label="Representation",
-                        hide_details=True,
-                        dense=True,
-                        outlined=True,
-                        classes="pt-1",
-                    )
-                    with vuetify.VRow(classes="pt-2", dense=True):
-                        with vuetify.VCol(cols="6"):
-                            vuetify.VSelect(
-                                # Color By
-                                label="Color by",
-                                v_model=("contour_color_array_idx", 0),
-                                items=("array_list", dataset_arrays),
-                                hide_details=True,
-                                dense=True,
-                                outlined=True,
-                                classes="pt-1",
-                            )
-                        with vuetify.VCol(cols="6"):
-                            vuetify.VSelect(
-                                # Color Map
-                                label="Colormap",
-                                v_model=("contour_color_preset", LookupTable.Rainbow),
-                                items=(
-                                    "colormaps",
-                                    [
-                                        {"text": "Rainbow", "value": 0},
-                                        {"text": "Inv Rainbow", "value": 1},
-                                        {"text": "Greyscale", "value": 2},
-                                        {"text": "Inv Greyscale", "value": 3},
-                                    ],
-                                ),
-                                hide_details=True,
-                                dense=True,
-                                outlined=True,
-                                classes="pt-1",
-                            ) 
-                            
-                            
-                        
-                        """
-
 
             with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
                 vuetify.VBtn("Add Stim", click=addstim)
@@ -596,7 +559,25 @@ def update_domain_params():
 
             vuetify.VDivider(vertical=True, classes="mx-5")
 
-            vuetify.VTextField(v_model=("animationStep", 10), hint="Animation Step", persistent_hint=True)
+            vuetify.VTextField(
+                v_model=("animationStep", 10), 
+                hint="Animation Step", 
+                persistent_hint=True,
+                )
+            
+            #style="position: absolute; top: 10px; left: 25px; width: 600px;",
+            #classes="fill-height",
+
+            """ SE FOR VOLTAR A USAR SLIDER 
+            vuetify.VSlider(
+                v_model=("nome", funcao),
+                min=3,
+                max=60,
+                step=1,
+                hide_details=True,
+                dense=True,
+                style="max-width: 300px",
+            ) """
 
             vuetify.VDivider(vertical=True, classes="mx-5")
             
