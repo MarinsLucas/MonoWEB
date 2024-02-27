@@ -12,10 +12,10 @@ if '--virtual-env' in sys.argv:
 
 import asyncio
 
-#debugimport paraview.web.venv
+import paraview.web.venv
 from pathlib import Path
-#debugfrom paraview import simple
-#debugfrom paraview.selection import *
+from paraview import simple
+from paraview.selection import *
 
 from trame.app import get_server, asynchronous
 from trame.widgets import vuetify, paraview, plotly
@@ -30,38 +30,38 @@ monoalg_command = "./runmonoalg.sh"
 # -----------------------------------------------------------------------------
 # ParaView pipeline
 # -----------------------------------------------------------------------------
-#debugfrom paraview import simple
+from paraview import simple
 
-#debugsimple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
+simple.LoadDistributedPlugin("AcceleratedAlgorithms", remote=False, ns=globals())
 
 # Rendering setup
-#debugview = simple.GetRenderView()
-#debugview.OrientationAxesVisibility = 0
-#debugview = simple.Render()
-#debugsimple.ResetCamera()
-#debugview.CenterOfRotation = view.CameraFocalPoint
+view = simple.GetRenderView()
+view.OrientationAxesVisibility = 0
+view = simple.Render()
+simple.ResetCamera()
+view.CenterOfRotation = view.CameraFocalPoint
 ########################################## Fim #################################
 
 #Inicializa o servidor
 server = get_server()
 state, ctrl = server.state, server.controller
 
-#debuganimationscene = simple.GetAnimationScene()
-#debugtimekeeper = animationscene.TimeKeeper
-#debugmetadata = None
-#debugtime_values = []
-#debugshow_graph = False
-domain_matrix_main_function_options = ["intialize_grid_with_cuboid_mesh", "initialize_grid_with_spherical_mesh", "initialize_grid_with_square_mesh", "initialize_grid_with_cable_mesh", "initialize_grid_with_rabbit_mesh",
-                                       "initialize_grid_with_benchmark_mesh", "initialize_grid_with_plain_fibrotic_mesh", "initialize_grid_with_plain_fibrotic_mesh_from_file", "initialize_grid_with_plain_source_sink_fibrotic_mesh", 
+animationscene = simple.GetAnimationScene()
+timekeeper = animationscene.TimeKeeper
+metadata = None
+time_values = []
+show_graph = False
+domain_matrix_main_function_options = ["initialize_grid_with_cuboid_mesh", "initialize_grid_with_spherical_mesh", "initialize_grid_with_square_mesh", "initialize_grid_with_cable_mesh", "initialize_grid_with_rabbit_mesh",
+                                        "initialize_grid_with_plain_fibrotic_mesh",  "initialize_grid_with_plain_source_sink_fibrotic_mesh", 
                                        "initialize_grid_with_plain_and_sphere_fibrotic_mesh", "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh", "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating", "initialize_grid_with_square_mesh_and_fibrotic_region",
-                                        "initialize_grid_with_custom_mesh",  "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region"]
+                                        "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region"]
 
 library_file_options = ["shared_libs/libToRORd_dynCl_mixed_endo_mid_epi.so", "shared_libs/libmitchell_shaeffer_2003.so", "shared_libs/libstewart_aslanidi_noble_2009.so", "shared_libs/libten_tusscher_2006.so", "shared_libs/libohara_rudy_endo_2011.so",
                         "shared_libs/libbondarenko_2004.so", "shared_libs/libcourtemanche_ramirez_nattel_1998.so", "shared_libs/libfhn_mod.so", "shared_libs/libMaleckar2008.so", "shared_libs/libMaleckar2009.so", "shared_libs/libToRORd_fkatp_mixed_endo_mid_epi.so",
                         "shared_libs/libToRORd_fkatp_endo.so", "shared_libs/libten_tusscher_3_endo.so", "shared_libs/libten_tusscher_2004_endo.so", "shared_libs/libToRORd_Land_mixed_endo_mid_epi.s" ]
 
-stimuli_main_function_options = ["stim_if_x_less_than", "stim_if_y_less_than", "stim_if_z_less_than", "stim_if_x_greater_equal_than","stim_if_y_greater_equal_than", "stim_if_z_greater_equal_than", "set_benchmark_spatial_stim", "stim_sphere",  "stim_x_y_limits", "stim_x_y_z_limits",
-                                 "stim_if_inside_circle_than",  "stim_if_id_less_than", "stim_if_id_greater_than", "stim_concave"]
+stimuli_main_function_options = ["stim_if_x_less_than", "stim_if_y_less_than", "stim_if_z_less_than", "stim_if_x_greater_equal_than","stim_if_y_greater_equal_than", "stim_if_z_greater_equal_than", "stim_sphere",  "stim_x_y_limits", "stim_x_y_z_limits",
+                                 "stim_if_inside_circle_than" ]
 
 examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protocol.ini", "EX03_plain_mesh_with_ischemia.ini", "EX04_3dwedge_healthy.ini"]
 #Variáveis dos estímulos:
@@ -71,19 +71,19 @@ state.n_estimulos = 0
 # Load function, runs every time server starts
 def load_data(**kwargs):
     global time_values, representation, reader, show_graph
-    #debugreader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
-    #debugreader.CellArrays = ['Scalars_']
-    #debugreader.UpdatePipeline()
-    #debugrepresentation = simple.Show(reader, view)
-    #debugtime_values = list(timekeeper.TimestepValues)
+    reader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
+    reader.CellArrays = ['Scalars_']
+    reader.UpdatePipeline()
+    representation = simple.Show(reader, view)
+    time_values = list(timekeeper.TimestepValues)
     
-    state.time_value = 0 #debugtime_values[0]
-    state.times = 0 #debuglen(time_values)-1
+    state.time_value = time_values[0]
+    state.times =len(time_values)-1
     state.time = 0
     state.play = False
     state.animationStep = 10 #default = 1
-    #debugsimple.ResetCamera()
-    #debugview.CenterOfRotation = view.CameraFocalPoint
+    simple.ResetCamera()
+    view.CenterOfRotation = view.CameraFocalPoint
     state.n_estimulos = 0
     
 @ctrl.add("on_server_reload")
@@ -154,6 +154,8 @@ def firstTime():
 
 def addstim():
     state.n_estimulos +=1
+    if(state.n_estimulos > 10):
+        state.n_estimulos = 10
     pass
 
 def removestim():
@@ -239,13 +241,13 @@ def readini(nome_arquivo):
         state.phi = config["domain"]["phi"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_source_sink_fibrotic_mesh":
         state.channel_width = config["domain"]["channel_width"]
-        state.chanel_length = config["domain"]["channel_length"]
+        state.channel_length = config["domain"]["channel_length"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh":
         state.phi = config["domain"]["phi"]
         state.plain_center = config["domain"]["plain_center"]
         state.sphere_radius = config["domain"]["sphere_radius"]
-        state.border_zone_size = config["domain"]["border_zone_size"]
         state.border_zone_radius = config["domain"]["border_zone_radius"]
+        state.border_zone_size = config["domain"]["border_zone_size"]
         state.seed = config["domain"]["seed"] #optional
     if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
         state.phi = config["domain"]["phi"]
@@ -283,6 +285,12 @@ def readini(nome_arquivo):
 
     state.library_file_select = config["ode_solver"]["library_file"]
 
+    state.n_estimulos = 0
+    for section in config.values():
+        for key in section.keys():
+            if key.startswith('stim'):
+                state.n_estimulos += 1
+                print(state.n_estimulos)
 
 
 
@@ -306,12 +314,132 @@ def runMonoAlg3D():
 
         #domain
         file.write("[domain]\nname=" + str(state.domain_name) + "\nstart_dx=" + str(state.start_dx) + "\nstart_dy=" + str(state.start_dy) + "\nstart_dz=" + str(state.start_dz)+ "\nmain_function=" + str(state.domain_matrix_main_function_selected))
+        
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_mesh":
+            file.write("\nside_length_x=" + str(state.side_length_x))
+            file.write("\nside_length_y="+str(state.side_length_y))
+            file.write("\nside_length_z=" + str(state.side_length_z))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_spherical_mesh":
+            file.write("\ndiameter="+str(state.diameter))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_cable_mesh":
+            file.write("\ncable_length="+str(state.cable_length))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_rabbit_mesh" or state.domain_matrix_main_function_selected  == "initialize_grid_with_benchmark_mesh":
+            file.write("\nmaximum_discretization="+str(state.maximum_discretization))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_fibrotic_mesh":
+            file.write("\nseed="+str(state.seed))
+            file.write("\nphi="+str(state.phi))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_source_sink_fibrotic_mesh":
+            file.write("\nchannel_width=" + str(state.channel_width))
+            file.write("\nchannel_length="+str(state.channel_length))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh":
+            file.write("\nphi="+str(state.phi))
+            file.write("\nplain_center="+ str(state.plain_center))
+            file.write("\nsphere_radius="+str(state.sphere_radius))
+            file.write("\nborder_zone_radius="+str(state.border_zone_radius))
+            file.write("\nborder_zone_size="+str(float(state.border_zone_radius) - float(state.sphere_radius)))
+            file.write("\nseed="+str(state.seed))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
+            file.write("\nphi="+str(state.phi))
+            file.write("\nsphere_center="+str(state.sphere_center))
+            file.write("\nsphere_radius="+str(state.sphere_radius))
+            file.write("\nseed="+str(state.seed))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating":
+            file.write("\nphi="+str(state.phi))
+            file.write("\nplain_center="+str(state.plain_center))
+            file.write("\nborder_zone_radius="+str(state.border_zone_radius))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_fibrotic_region":
+            file.write("\nphi="+str(state.phi))
+            file.write("\nseed="+str(state.seed))
+            file.write("\nregion_min_x="+ str(state.region_min_x))
+            file.write("\nregion_max_x=" +str(state.region_max_x))
+            file.write("\nregion_min_y="+str(state.region_min_y))
+            file.write("\nregion_max_y="+str(state.region_max_y))
+            file.write("\nregion_min_z="+str(state.region_min_z))
+            file.write("\nregion_max_z="+str(state.region_max_z))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region":
+            file.write("\nphi="+str(state.phi))
+            file.write("\nseed="+str(state.seed))
+            file.write("\nregion_min_x="+ str(state.region_min_x))
+            file.write("\nregion_max_x=" +str(state.region_max_x))
+            file.write("\nregion_min_y="+str(state.region_min_y))
+            file.write("\nregion_max_y="+str(state.region_max_y))
+            file.write("\nregion_min_z="+str(state.region_min_z))
+            file.write("\nregion_max_z="+str(state.region_max_z))
+            file.write("\nsource_sink_min_x="+str(state.source_sink_min_x))
+            file.write("\nsource_sink_max_x="+str(state.source_sink_max_x))
+            file.write("\nside_length="+str(state.side_length))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
+            file.write("\nside_length="+str(state.side_length))
 
         #ode_solver
         file.write("\n[ode_solver]\ndt=0.02\nuse_gpu=yes\ngpu_id=0\nlibrary_file="+str(state.library_file_select))
 
         #stim
-        
+        for i in range(state.n_estimulos):
+            file.write("\n[stim_"+str(i)+ "]\n")
+            file.write("start="+str(state["start_stim_" + str(i)]))
+            file.write("\nduration="+str(state["duration_"+str(i)]))
+            file.write("\ncurrent="+str(state["current_"+str(i)]))
+            file.write("\nmain_function="+str(state["stimuli_main_function_selected"+str(i)]))
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_x_less_than":
+                file.write("\nx_limit="+str(state["x_limit"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_y_less_than":
+                file.write("\ny_limit="+str(state["y_limit"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_z_less_than":
+                file.write("\nz_limit="+str(state["z_limit"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_x_greater_equal_than":
+                file.write("\nx_limit="+str(state["x_limit"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_y_greater_equal_than":
+                file.write("\ny_limit="+str(state["y_limit"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_z_greater_equal_than":
+                file.write("\nz_limit="+str(state["z_limit"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_sphere":
+                file.write("\ncenter_x="+str(state["center_x"+str(i)]))
+                file.write("\ncenter_y="+str(state["center_y"+str(i)]))
+                file.write("\ncenter_z="+str(state["center_z"+str(i)]))
+                file.write("\nradius="+str(state["radius"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_x_y_limits":
+                file.write("\nmax_x="+str(state["max_x"+str(i)]))
+                file.write("\nmin_x="+str(state["min_x"+str(i)]))
+                file.write("\nmax_y="+str(state["max_y"+str(i)]))
+                file.write("\nmin_y="+str(state["min_y"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_x_y_z_limits":
+                file.write("\nmax_x="+str(state["max_x"+str(i)]))
+                file.write("\nmin_x="+str(state["min_x"+str(i)]))
+                file.write("\nmax_y="+str(state["max_y"+str(i)]))
+                file.write("\nmin_y="+str(state["min_y"+str(i)]))
+                file.write("\nmax_z="+str(state["max_z"+str(i)]))
+                file.write("\nmin_z="+str(state["min_z"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_inside_circle_than":
+                file.write("\ncenter_x="+str(state["center_x"+str(i)]))
+                file.write("\ncenter_y="+str(state["center_y"+str(i)]))
+                file.write("\ncenter_z="+str(state["center_z"+str(i)]))
+                file.write("\nradius="+str(state["radius"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_id_less_than":
+                file.write("\nid_limit="+str(state["id_limit"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_if_id_greater_than":
+                file.write("\nid_limit="+str(state["id_limit"+str(i)]))
+
+            if state["stimuli_main_function_selected"+str(i)] == "stim_concave":
+                file.write("\nmax_x_1="+str(state["max_x_1"+str(i)]))
+                file.write("\nmin_x_1="+str(state["min_x_1"+str(i)]))
+                file.write("\nmax_y_1="+str(state["max_y_1"+str(i)]))
+                file.write("\nmin_y_1="+str(state["min_y_1"+str(i)]))
+                file.write("\nmax_x_2="+str(state["max_x_2"+str(i)]))
+                file.write("\nmin_x_2="+str(state["min_x_2"+str(i)]))
+                file.write("\nmax_y_2="+str(state["max_y_2"+str(i)]))
+                file.write("\nmin_y_2="+str(state["min_y_2"+str(i)]))
     #saida = subprocess.check_output(monoalg_command, shell=True, universal_newlines=True)
     #print(saida)
     pass
@@ -364,20 +492,18 @@ def update_domain_params():
             vuetify.VCheckbox(v_model=("advanced_config", False), label="Advanced Settings")
 
             if state.advanced_config == True:
-
-                with vuetify.VList():
-                    vuetify.VSubheader("Seção 1")
-
                 #save_result: print_rate
                 vuetify.VTextField(v_model=("print_rate", 1000), hint="Save rate", persistent_hint=True)
 
+                with vuetify.VList(classes="pt-5"):
+                    vuetify.VSubheader("Conductivity")
                 #assembly_matrix
                 vuetify.VTextField(v_model=("sigma_x", 1000), hint="Sigma X", persistent_hint=True)
                 vuetify.VTextField(v_model=("sigma_y", 1000), hint="Sigma Y", persistent_hint=True)
                 vuetify.VTextField(v_model=("sigma_z", 1000), hint="Sigma Z", persistent_hint=True)
             
                 with vuetify.VList(classes="pt-5"):
-                    vuetify.VSubheader("Seção 2")
+                    vuetify.VSubheader("Domain")
 
                 vuetify.VSelect(
                     label="Domain Main Function",
@@ -392,7 +518,7 @@ def update_domain_params():
                 vuetify.VTextField(v_model=("start_dx", 1000), hint="Start dx", persistent_hint=True)
                 vuetify.VTextField(v_model=("start_dy", 1000), hint="Start dy", persistent_hint=True)
                 vuetify.VTextField(v_model=("start_dz", 1000), hint="Start dz", persistent_hint=True)
-                if state.domain_matrix_main_function_selected == "intialize_grid_with_cuboid_mesh":
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_mesh":
                     vuetify.VTextField(v_model=("side_length_x", 1000), hint="Side Lenght X", persistent_hint=True)
                     vuetify.VTextField(v_model=("side_length_y", 1000), hint="Side Lenght Y", persistent_hint=True)
                     vuetify.VTextField(v_model=("side_length_z", 1000), hint="Side Lenght Z", persistent_hint=True)
@@ -412,7 +538,6 @@ def update_domain_params():
                     vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
                     vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
                     vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
-                    vuetify.VTextField(v_model=("border_zone_size", 1000), hint="Border Zone Size", persistent_hint=True)
                     vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
                     vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
@@ -448,6 +573,10 @@ def update_domain_params():
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
                     vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
 
+
+                with vuetify.VList(classes="pt-5"):
+                    vuetify.VSubheader("Cellular model")
+                
                 #ode_solver
                 vuetify.VSelect(
                     items=("library_file_options", library_file_options),
@@ -459,9 +588,11 @@ def update_domain_params():
                     v_model=("library_file_select", "opção3"),
                 ) 
 
-
-            #a ver com ESTÍMULOS
+            with vuetify.VList(classes="pt-5"):
+                    vuetify.VSubheader("Stimuli")
             for i in range(int(state.n_estimulos)):
+                with vuetify.VList(classes="pt-5"):
+                    vuetify.VSubheader("Stim" + str(i))
                 vuetify.VTextField(v_model=("start_stim_"+str(i), 1000), hint="Start Stim", persistent_hint=True)
                 vuetify.VTextField(v_model=("duration_"+str(i), 1000), hint="Duration", persistent_hint=True)
                 vuetify.VTextField(v_model=("current_"+str(i), 1000), hint="Current", persistent_hint=True)
@@ -525,20 +656,12 @@ def update_domain_params():
                     vuetify.VTextField(v_model=("min_y_2"+str(i), 1000), hint="min_y_2", persistent_hint=True)
 
 
-            #stim
-            #start
-            #duration
-            #current
-            #main_function = dropdown
-
-            with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
-                vuetify.VBtn("Add Stim", click=addstim)
-
-            with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
-                vuetify.VBtn("Remove Stim", click=removestim)
-
-            with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
-                vuetify.VBtn("Clear Stim", click=clearstims)
+            with vuetify.VBtn(hint = "Add Stim", click=addstim):
+                vuetify.VIcon("mdi-plus")
+            with vuetify.VBtn(hint="Remove Stim", click=removestim):
+                vuetify.VIcon("mdi-minus")
+            with vuetify.VBtn(hint="Clear all stimuli", click=clearstims):
+                vuetify.VIcon("mdi-delete")
 
             with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
                 vuetify.VBtn("Run", click=runMonoAlg3D)
@@ -582,7 +705,7 @@ def update_domain_params():
             vuetify.VDivider(vertical=True, classes="mx-5")
             
             with vuetify.VBtn(icon=True, click=firstTime):
-                vuetify.VIcon("mdi-alpha-f")
+                vuetify.VIcon("mdi-page-first")
 
             with vuetify.VBtn(icon=True, click=subTime):
                 vuetify.VIcon("mdi-chevron-left")
@@ -599,16 +722,16 @@ def update_domain_params():
                 vuetify.VIcon("mdi-play")
 
             with vuetify.VBtn(icon=True, click=lastTime):
-                vuetify.VIcon("mdi-undo-variant")
+                vuetify.VIcon("mdi-page-last")
 
-            with vuetify.VBtn(icon=True, click=addClip):
-                vuetify.VIcon("mdi-angle-acute")
+            """ with vuetify.VBtn(icon=True, click=addClip):
+                vuetify.VIcon("mdi-angle-acute") """
         
         #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
         with layout.content:
             with vuetify.VContainer(fluid=True,classes="pa-0 fill-height"):
                 global html_view
-                #debughtml_view = paraview.VtkRemoteLocalView(view,namespace="demo")
+                html_view = paraview.VtkRemoteLocalView(view,namespace="demo")
                 """ with vuetify.VCol(style="max-width: 50%",classes="ma-0 fill-height", align ="start", cols=6, sm=6):
                     x = [i for i in range(100)]
                     y = [x[i]**2 for i in range(100)]
