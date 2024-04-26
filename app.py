@@ -1,3 +1,22 @@
+""" 
+TODO list:
+Essencial
+- Rodar o MonoAlg3D!!!
+- Consertar passo de tempo
+- Consertar animação
+- Consertar colormap
+- Leitura de estímulos do arquivo
+
+Ideal
+- Exibição dos exemplos sem execução do MonoAlg3D
+- Seleção de célula
+- Gerar gráfico
+
+Seria bom:
+- Clip
+"""
+
+
 import sys
 if '--virtual-env' in sys.argv:
   virtualEnvPath = sys.argv[sys.argv.index('--virtual-env') + 1]
@@ -18,11 +37,13 @@ from paraview import simple
 from paraview.selection import *
 
 from trame.app import get_server, asynchronous
-from trame.widgets import vuetify, paraview, plotly
+from trame.widgets import paraview, plotly
 from trame.ui.vuetify import SinglePageWithDrawerLayout
 import subprocess
 import plotly.graph_objects as go
-
+from trame.widgets import vuetify2 as vuetify
+import threading
+import time
 import re
 
 monoalg_command = "./runmonoalg.sh"
@@ -44,6 +65,8 @@ view.CenterOfRotation = view.CameraFocalPoint
 
 #Inicializa o servidor
 server = get_server()
+server.client_type = "vue2"
+
 state, ctrl = server.state, server.controller
 
 animationscene = simple.GetAnimationScene()
@@ -67,11 +90,18 @@ examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protoco
 #Variáveis dos estímulos:
 stimuli_main_function_selected_dicionary = {}
 
+def thread_play():
+    while state.play == True:
+        print("Thread em execução...")
+        time.sleep(10)
+
+threadPlay = threading.Thread(target=thread_play)
+
 state.n_estimulos = 0
 # Load function, runs every time server starts
 def load_data(**kwargs):
     global time_values, representation, reader, show_graph
-    reader = simple.PVDReader(FileName="C:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/outputs/temp/simulation_result.pvd")
+    reader = simple.PVDReader(FileName="./MonoAlg3D_C/outputs/temp/simulation_result.pvd")
     reader.CellArrays = ['Scalars_']
     reader.UpdatePipeline()
     representation = simple.Show(reader, view)
@@ -81,10 +111,11 @@ def load_data(**kwargs):
     state.times =len(time_values)-1
     state.time = 0
     state.play = False
-    state.animationStep = 10 #default = 1
+    state.printRate = 10 #default = 1
     simple.ResetCamera()
     view.CenterOfRotation = view.CameraFocalPoint
     state.n_estimulos = 0
+    
     
 @ctrl.add("on_server_reload")
 def print_item(item):
@@ -103,7 +134,7 @@ def update_time(time, **kwargs):
     timekeeper.Time = time_value
     state.time_value = time_value
     
-    ctrl.view_update_image()
+    html_view.update_image()
 
 global html_view
 
@@ -112,7 +143,7 @@ global html_view
 async def update_play(**kwargs):
     while state.play:
         with state:
-            state.time += int(state.animationStep)
+            state.time += int(state.printRate)
             update_time(state.time)
 
         await asyncio.sleep(0.1)
@@ -133,12 +164,12 @@ def update_contour(position , **kwargs):
     pass
 
 def subTime():
-    state.time -= int(state.animationStep)
+    state.time -= int(state.printRate)
     html_view.update_image()
     pass
 
 def addTime():
-    state.time += int(state.animationStep)
+    state.time += int(state.printRate)
     html_view.update_image()
     pass
 
@@ -186,9 +217,6 @@ def addClip():
     clip.HyperTreeGridClipper.Normal = [1.0, 0.0, 0.0]
     clip.HyperTreeGridClipper.Offset = 0.0
 
-    simple.Hide(reader, view)
-    representation = simple.Show(clip, view)
-    html_view.update_image()
 
 def playAnimation():
     if state.play:
@@ -440,8 +468,8 @@ def runMonoAlg3D():
                 file.write("\nmin_x_2="+str(state["min_x_2"+str(i)]))
                 file.write("\nmax_y_2="+str(state["max_y_2"+str(i)]))
                 file.write("\nmin_y_2="+str(state["min_y_2"+str(i)]))
-    #saida = subprocess.check_output(monoalg_command, shell=True, universal_newlines=True)
-    #print(saida)
+    saida = subprocess.check_output(monoalg_command, shell=True, universal_newlines=True)
+    print(saida)
     pass
 
 
@@ -683,8 +711,8 @@ def update_domain_params():
             vuetify.VDivider(vertical=True, classes="mx-5")
 
             vuetify.VTextField(
-                v_model=("animationStep", 10), 
-                hint="Animation Step", 
+                v_model=("printRate", 10), 
+                hint="Print Rate", 
                 persistent_hint=True,
                 )
             
@@ -755,3 +783,29 @@ ctrl.on_server_ready.add(load_data)
 
 #Inicia o servidor
 server.start()
+
+
+
+""" Como corrigir o colormap:
+
+# get active view
+renderView1 = GetActiveViewOrCreate('RenderView')
+
+# get display properties
+simulation_resultpvdDisplay = GetDisplayProperties(simulation_resultpvd, view=renderView1)
+
+# rescale color and/or opacity maps used to exactly fit the current data range
+simulation_resultpvdDisplay.RescaleTransferFunctionToDataRange(False, True)
+
+# get color transfer function/color map for 'Scalars_'
+scalars_LUT = GetColorTransferFunction('Scalars_')
+
+# get opacity transfer function/opacity map for 'Scalars_'
+scalars_PWF = GetOpacityTransferFunction('Scalars_')
+
+# get 2D transfer function for 'Scalars_'
+scalars_TF2D = GetTransferFunction2D('Scalars_')
+
+# rescale color and/or opacity maps used to exactly fit the current data range
+simulation_resultpvdDisplay.RescaleTransferFunctionToDataRange(False, True)
+ """
