@@ -257,24 +257,6 @@ def clearstims():
     state.n_estimulos = 0
     pass
 
-def addClip():
-    clip = simple.Clip(registrationName="Clip1",Input=reader)
-    clip.ClipType = "Plane"
-    clip.HyperTreeGridClipper = 'Plane'
-    clip.Scalars = ['CELLS', 'Scalars_']
-    clip.Value = -85.2300033569336
-    clip.Invert = 1
-    clip.Crinkleclip = 0
-    clip.Exact = 0
-
-    clip.ClipType.Origin = [16375.0, 15125.0, 13875.0]
-    clip.ClipType.Normal = [1.0, 0.0, 0.0]
-    clip.ClipType.Offset = 0.0
-
-    clip.HyperTreeGridClipper.Origin = [16375.0, 15125.0, 13875.0]
-    clip.HyperTreeGridClipper.Normal = [1.0, 0.0, 0.0]
-    clip.HyperTreeGridClipper.Offset = 0.0
-
 
 def playAnimation():
     if state.play:
@@ -812,10 +794,6 @@ def update_domain_params():
                 active=("trame__busy",),
             )
 
-            #Estava tentando colocar um icone, mas não consigo.
-            #https://vuetifyjs.com/en/api/v-btn/#props
-
-
             vuetify.VDivider(vertical=True, classes="mx-5")
 
             vuetify.VTextField(
@@ -823,20 +801,6 @@ def update_domain_params():
                 hint="Print Rate", 
                 persistent_hint=True,
                 )
-            
-            #style="position: absolute; top: 10px; left: 25px; width: 600px;",
-            #classes="fill-height",
-
-            """ SE FOR VOLTAR A USAR SLIDER 
-            vuetify.VSlider(
-                v_model=("nome", funcao),
-                min=3,
-                max=60,
-                step=1,
-                hide_details=True,
-                dense=True,
-                style="max-width: 300px",
-            ) """
 
             vuetify.VDivider(vertical=True, classes="mx-5")
             
@@ -846,7 +810,6 @@ def update_domain_params():
             with vuetify.VBtn(icon=True, click=subTime):
                 vuetify.VIcon("mdi-chevron-left")
             
-            #não consegui diminuir a largura dele
             vuetify.VTextField(v_model=("time_value", 0), change=update_frame, number = True, hint="Real Time (ms)", persistent_hint=True, style="width: 5px; height: 100%") #Esse style não funciona no texto, mas funciona em outros elementos 
             
             with vuetify.VBtn(icon=True, click=addTime):
@@ -860,30 +823,11 @@ def update_domain_params():
             with vuetify.VBtn(icon=True, click=lastTime):
                 vuetify.VIcon("mdi-page-last")
 
-            """ with vuetify.VBtn(icon=True, click=addClip):
-                vuetify.VIcon("mdi-angle-acute") """
-        
-        #Isso é a parte inferior e maior da página (onde tudo é plotado por enquanto)
         with layout.content:
             with vuetify.VContainer(fluid=True,classes="pa-0 fill-height"):
                 global html_view
                 html_view = paraview.VtkRemoteLocalView(view,namespace="demo")
-                """ with vuetify.VCol(style="max-width: 50%",classes="ma-0 fill-height", align ="start", cols=6, sm=6):
-                    x = [i for i in range(100)]
-                    y = [x[i]**2 for i in range(100)]
-                    fig = go.Figure()
-
-                    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', name='x²'))
-
-                    fig.update_layout(
-                        title='Gráfico de x²',
-                        xaxis_title='x',
-                        yaxis_title='x²',
-                    )
-
-                    plot_view = plotly.Figure(fig)
-                    plot_view.update(fig) """
-
+                
 update_domain_params()
 
 #Chama função de carregar dados quando o servidor inicia
