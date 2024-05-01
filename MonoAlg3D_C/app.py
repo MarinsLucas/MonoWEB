@@ -1,23 +1,6 @@
-""" 
-TODO list:
-Essencial
-- Rodar o MonoAlg3D!!!
-- Consertar passo de tempo
-- Consertar animação
-- Consertar colormap
-- Leitura de estímulos do arquivo
-
-Ideal
-- Exibição dos exemplos sem execução do MonoAlg3D
-- Seleção de célula
-- Gerar gráfico
-
-Seria bom:
-- Clip
-"""
-
-
 import sys
+import threading
+import time
 if '--virtual-env' in sys.argv:
   virtualEnvPath = sys.argv[sys.argv.index('--virtual-env') + 1]
   # Linux
@@ -31,6 +14,24 @@ if '--virtual-env' in sys.argv:
 
 import asyncio
 
+class SimuladorThread(threading.Thread):
+    def __init__(self, callback):
+        super().__init__()
+        self.callback = callback 
+    def run(self):
+        #Testar isso daqui
+        #processo = subprocess.Popen("./bin/MonoAlg3D -c ./example_configs/custom.ini", shell=True)
+        
+        #Apenas um exemplo para demosntrar
+        processo = subprocess.Popen("C:/Users/lucas/AppData/Local/Programs/Python/Python312/python.exe c:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/exemplo.py")
+        while True:
+            if processo.poll() is None:
+                print("O processo está rodando")
+                time.sleep(1)
+            else:
+                self.callback()
+                break
+        
 import paraview.web.venv
 from pathlib import Path
 from paraview import simple
@@ -42,12 +43,12 @@ from trame.ui.vuetify import SinglePageWithDrawerLayout
 import subprocess
 import plotly.graph_objects as go
 from trame.widgets import vuetify2 as vuetify
-import threading
-import time
 import re
 
-monoalg_command = "./runmonoalg.sh"
-########################### Configuando paraview #######################
+
+monoalg_command = "./bin/MonoAlg3D -c ./example_configs/custom.ini"
+
+########################### Configurando paraview #######################
 # -----------------------------------------------------------------------------
 # ParaView pipeline
 # -----------------------------------------------------------------------------
@@ -90,18 +91,70 @@ examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protoco
 #Variáveis dos estímulos:
 stimuli_main_function_selected_dicionary = {}
 
-def thread_play():
-    while state.play == True:
-        print("Thread em execução...")
-        time.sleep(10)
+def colormap():
+    # get 2D transfer function for 'Scalars_'
+    scalars_TF2D = simple.GetTransferFunction2D('Scalars_')
+    scalars_TF2D.AutomaticRescaleRangeMode = "Grow and update on 'Apply'"
+    scalars_TF2D.Boxes = []
+    scalars_TF2D.ScalarRangeInitialized = 1
+    scalars_TF2D.Range = [-86.0, 40.0, 0.0, 1.0]
+    scalars_TF2D.OutputDimensions = [10, 10]
 
-threadPlay = threading.Thread(target=thread_play)
+    # get color transfer function/color map for 'Scalars_'
+    scalars_LUT = simple.GetColorTransferFunction('Scalars_')
+    scalars_LUT.InterpretValuesAsCategories = 0
+    scalars_LUT.AnnotationsInitialized = 0
+    scalars_LUT.ShowCategoricalColorsinDataRangeOnly = 0
+    scalars_LUT.AutomaticRescaleRangeMode = "Grow and update on 'Apply'"
+    scalars_LUT.RescaleOnVisibilityChange = 0
+    scalars_LUT.TransferFunction2D = scalars_TF2D
+    scalars_LUT.RGBPoints = [-86.19999694824219, 0.231373, 0.298039, 0.752941, -86.19218444824219, 0.865003, 0.865003, 0.865003, -86.18437194824219, 0.705882, 0.0156863, 0.14902]
+    scalars_LUT.UseLogScale = 0
+    scalars_LUT.UseOpacityControlPointsFreehandDrawing = 0
+    scalars_LUT.ShowDataHistogram = 0
+    scalars_LUT.AutomaticDataHistogramComputation = 0
+    scalars_LUT.DataHistogramNumberOfBins = 10
+    scalars_LUT.ColorSpace = 'Diverging'
+    scalars_LUT.UseBelowRangeColor = 0
+    scalars_LUT.BelowRangeColor = [0.0, 0.0, 0.0]
+    scalars_LUT.UseAboveRangeColor = 0
+    scalars_LUT.AboveRangeColor = [0.5, 0.5, 0.5]
+    scalars_LUT.NanColor = [1.0, 1.0, 0.0]
+    scalars_LUT.NanOpacity = 1.0
+    scalars_LUT.Discretize = 1
+    scalars_LUT.NumberOfTableValues = 256
+    scalars_LUT.ScalarRangeInitialized = 1.0
+    scalars_LUT.HSVWrap = 0
+    scalars_LUT.VectorComponent = 0
+    scalars_LUT.VectorMode = 'Magnitude'
+    scalars_LUT.AllowDuplicateScalars = 1
+    scalars_LUT.Annotations = []
+    scalars_LUT.ActiveAnnotatedValues = []
+    scalars_LUT.IndexedColors = []
+    scalars_LUT.IndexedOpacities = []
+    scalars_LUT.EnableOpacityMapping = 0
+
+    # Rescale transfer function
+    scalars_LUT.RescaleTransferFunction(-86.19999694824219, 40.0)
+
+    # get opacity transfer function/opacity map for 'Scalars_'
+    scalars_PWF = simple.GetOpacityTransferFunction('Scalars_')
+    scalars_PWF.Points = [-86.19999694824219, 0.0, 0.5, 0.0, -86.18437194824219, 1.0, 0.5, 0.0]
+    scalars_PWF.AllowDuplicateScalars = 1
+    scalars_PWF.UseLogScale = 0
+    scalars_PWF.ScalarRangeInitialized = 1
+
+    # Rescale transfer function
+    scalars_PWF.RescaleTransferFunction(-86.19999694824219, 40.0)
+
+    # Rescale 2D transfer function
+    scalars_TF2D.RescaleTransferFunction(-86.19999694824219, 40.0, 0.0, 1.0)
 
 state.n_estimulos = 0
 # Load function, runs every time server starts
 def load_data(**kwargs):
     global time_values, representation, reader, show_graph
-    reader = simple.PVDReader(FileName="./MonoAlg3D_C/outputs/temp/simulation_result.pvd")
+    reader = simple.PVDReader(FileName="./outputs/temp/simulation_result.pvd")
     reader.CellArrays = ['Scalars_']
     reader.UpdatePipeline()
     representation = simple.Show(reader, view)
@@ -115,7 +168,12 @@ def load_data(**kwargs):
     simple.ResetCamera()
     view.CenterOfRotation = view.CameraFocalPoint
     state.n_estimulos = 0
-    
+
+    #Config  colormap:
+    colormap()
+
+
+
     
 @ctrl.add("on_server_reload")
 def print_item(item):
@@ -226,7 +284,8 @@ def playAnimation():
 
 def readini(nome_arquivo):
     config = {}
-    with open("./MonoAlg3D_C/example_configs/" + str(nome_arquivo), 'r') as file:
+    with open("./example_configs/" + str(nome_arquivo), 'r') as file:
+        state.n_estimulos = 0
         current_section = None
         for line in file:
             line = line.strip()
@@ -236,6 +295,8 @@ def readini(nome_arquivo):
             if match:
                 current_section = match.group(1)
                 config[current_section] = {}
+                if current_section.split("_")[0] == "stim":
+                    state.n_estimulos+=1
             else:
                 parts = line.split('=', 1)
                 if len(parts) == 2:
@@ -312,19 +373,64 @@ def readini(nome_arquivo):
 
 
     state.library_file_select = config["ode_solver"]["library_file"]
+    
+    for i in range(int(state.n_estimulos)):
+        state["start_stim_"+str(i)] = config["stim_"+str(i+1)]["start"]
+        state["duration_"+str(i)] = config["stim_"+str(i+1)]["duration"]
+        state["current_"+str(i)] = config["stim_"+str(i+1)]["current"]
+        state["stimuli_main_function_selected"+str(i)] = config["stim_"+str(i+1)]["main_function"]
 
-    state.n_estimulos = 0
-    for section in config.values():
-        for key in section.keys():
-            if key.startswith('stim'):
-                state.n_estimulos += 1
-                print(state.n_estimulos)
-
-
+        if state["stimuli_main_function_selected"+str(i)] == "stim_if_x_less_than":
+            state["x_limit"+str(i)] = config["stim_"+str(i+1)]["x_limit"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_if_y_less_than":
+            state["y_limit"+str(i)] = config["stim_"+str(i+1)]["y_limit"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_if_z_less_than":
+            state["z_limit"+str(i)] = config["stim_"+str(i+1)]["z_limit"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_if_x_greater_equal_than":
+            state["x_limit"+str(i)] = config["stim_"+str(i+1)]["x_limit"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_if_y_greater_equal_than":
+            state["y_limit"+str(i)] = config["stim_"+str(i+1)]["y_limit"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_if_z_greater_equal_than":
+            state["z_limit"+str(i)] = config["stim_"+str(i+1)]["z_limit"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_sphere":
+            state["center_x"+str(i)] = config["stim_"+str(i+1)]["center_x"]
+            state["center_y"+str(i)] = config["stim_"+str(i+1)]["center_y"]
+            state["center_z"+str(i)] = config["stim_"+str(i+1)]["center_z"]
+            state["radius"+str(i)] = config["stim_"+str(i+1)]["radius"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_x_y_limits":
+            state["max_x"+str(i)] = config["stim_"+str(i+1)]["max_x"]
+            state["min_x"+str(i)] = config["stim_"+str(i+1)]["min_x"]
+            state["max_y"+str(i)] = config["stim_"+str(i+1)]["max_y"]
+            state["min_y"+str(i)] = config["stim_"+str(i+1)]["min_y"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_x_y_zlimits":
+            state["max_x"+str(i)] = config["stim_"+str(i+1)]["max_x"]
+            state["min_x"+str(i)] = config["stim_"+str(i+1)]["min_x"]
+            state["max_y"+str(i)] = config["stim_"+str(i+1)]["max_y"]
+            state["min_y"+str(i)] = config["stim_"+str(i+1)]["min_y"]
+            state["max_z"+str(i)] = config["stim_"+str(i+1)]["max_z"]
+            state["min_z"+str(i)] = config["stim_"+str(i+1)]["min_z"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_if_inside_circle_than":
+            state["center_x"+str(i)] = config["stim_"+str(i+1)]["center_x"]
+            state["center_y"+str(i)] = config["stim_"+str(i+1)]["center_y"]
+            state["center_z"+str(i)] = config["stim_"+str(i+1)]["center_z"]
+            state["radius"+str(i)] = config["stim_"+str(i+1)]["radius"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_if_id_less_than":
+            state["id_limit"+str(i)] = config["stim_"+str(i+1)]["id_limit"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_if_id_greater_than":
+            state["id_limit"+str(i)] = config["stim_"+str(i+1)]["id_limit"]
+        elif state["stimuli_main_function_selected"+str(i)] == "stim_concave":
+            state["max_x_1"+str(i)] = config["stim_"+str(i+1)]["max_x_1"]
+            state["min_x_1"+str(i)] = config["stim_"+str(i+1)]["min_x_1"]
+            state["max_y_1"+str(i)] = config["stim_"+str(i+1)]["max_y_1"]
+            state["min_y_1"+str(i)] = config["stim_"+str(i+1)]["min_y_1"]
+            state["max_x_2"+str(i)] = config["stim_"+str(i+1)]["max_x_2"]
+            state["min_x_2"+str(i)] = config["stim_"+str(i+1)]["min_x_2"]
+            state["max_y_2"+str(i)] = config["stim_"+str(i+1)]["max_y_2"]
+            state["min_y_2"+str(i)] = config["stim_"+str(i+1)]["min_y_2"]
 
 def runMonoAlg3D():
     #Colocar os campos 
-    with open("./MonoAlg3D_C/example_configs/custom.ini", 'w') as file:
+    with open("./example_configs/custom.ini", 'w') as file:
         #MAIN
         file.write("[main]\nnum_threads=6\ndt_pde=0.02\nsimulation_time=" + str(state.simulation_time) + "\nabort_on_no_activity=true\nuse_adaptivity=false\n")
 
@@ -468,8 +574,9 @@ def runMonoAlg3D():
                 file.write("\nmin_x_2="+str(state["min_x_2"+str(i)]))
                 file.write("\nmax_y_2="+str(state["max_y_2"+str(i)]))
                 file.write("\nmin_y_2="+str(state["min_y_2"+str(i)]))
-    saida = subprocess.check_output(monoalg_command, shell=True, universal_newlines=True)
-    print(saida)
+
+    simulador_thread = SimuladorThread(update_domain_params)
+    simulador_thread.start()
     pass
 
 
@@ -494,6 +601,7 @@ def s0(**kwargs):
     update_domain_params()
 
 def update_domain_params():
+    print("ATUALIZOU")
     with SinglePageWithDrawerLayout(server) as layout:
         
         layout.title.set_text("MonoWEB")
@@ -783,29 +891,3 @@ ctrl.on_server_ready.add(load_data)
 
 #Inicia o servidor
 server.start()
-
-
-
-""" Como corrigir o colormap:
-
-# get active view
-renderView1 = GetActiveViewOrCreate('RenderView')
-
-# get display properties
-simulation_resultpvdDisplay = GetDisplayProperties(simulation_resultpvd, view=renderView1)
-
-# rescale color and/or opacity maps used to exactly fit the current data range
-simulation_resultpvdDisplay.RescaleTransferFunctionToDataRange(False, True)
-
-# get color transfer function/color map for 'Scalars_'
-scalars_LUT = GetColorTransferFunction('Scalars_')
-
-# get opacity transfer function/opacity map for 'Scalars_'
-scalars_PWF = GetOpacityTransferFunction('Scalars_')
-
-# get 2D transfer function for 'Scalars_'
-scalars_TF2D = GetTransferFunction2D('Scalars_')
-
-# rescale color and/or opacity maps used to exactly fit the current data range
-simulation_resultpvdDisplay.RescaleTransferFunctionToDataRange(False, True)
- """
