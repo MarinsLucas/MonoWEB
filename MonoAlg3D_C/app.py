@@ -99,7 +99,6 @@ def colormap():
     scalars_TF2D.ScalarRangeInitialized = 1
     scalars_TF2D.Range = [-86.0, 40.0, 0.0, 1.0]
     scalars_TF2D.OutputDimensions = [10, 10]
-
     # get color transfer function/color map for 'Scalars_'
     scalars_LUT = simple.GetColorTransferFunction('Scalars_')
     scalars_LUT.InterpretValuesAsCategories = 0
@@ -133,20 +132,16 @@ def colormap():
     scalars_LUT.IndexedColors = []
     scalars_LUT.IndexedOpacities = []
     scalars_LUT.EnableOpacityMapping = 0
-
     # Rescale transfer function
     scalars_LUT.RescaleTransferFunction(-86.19999694824219, 40.0)
-
     # get opacity transfer function/opacity map for 'Scalars_'
     scalars_PWF = simple.GetOpacityTransferFunction('Scalars_')
     scalars_PWF.Points = [-86.19999694824219, 0.0, 0.5, 0.0, -86.18437194824219, 1.0, 0.5, 0.0]
     scalars_PWF.AllowDuplicateScalars = 1
     scalars_PWF.UseLogScale = 0
     scalars_PWF.ScalarRangeInitialized = 1
-
     # Rescale transfer function
     scalars_PWF.RescaleTransferFunction(-86.19999694824219, 40.0)
-
     # Rescale 2D transfer function
     scalars_TF2D.RescaleTransferFunction(-86.19999694824219, 40.0, 0.0, 1.0)
 
