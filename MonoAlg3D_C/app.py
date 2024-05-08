@@ -62,6 +62,8 @@ view.OrientationAxesVisibility = 0
 view = simple.Render()
 simple.ResetCamera()
 view.CenterOfRotation = view.CameraFocalPoint
+reader = simple.PVDReader(guiName="currentPVD", FileName="./outputs/EX01/simulation_result.pvd")
+
 ########################################## Fim #################################
 
 #Inicializa o servidor
@@ -92,64 +94,24 @@ examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protoco
 stimuli_main_function_selected_dicionary = {}
 
 def colormap():
-    # get 2D transfer function for 'Scalars_'
-    scalars_TF2D = simple.GetTransferFunction2D('Scalars_')
-    scalars_TF2D.AutomaticRescaleRangeMode = "Grow and update on 'Apply'"
-    scalars_TF2D.Boxes = []
-    scalars_TF2D.ScalarRangeInitialized = 1
-    scalars_TF2D.Range = [-86.0, 40.0, 0.0, 1.0]
-    scalars_TF2D.OutputDimensions = [10, 10]
-    # get color transfer function/color map for 'Scalars_'
     scalars_LUT = simple.GetColorTransferFunction('Scalars_')
-    scalars_LUT.InterpretValuesAsCategories = 0
-    scalars_LUT.AnnotationsInitialized = 0
-    scalars_LUT.ShowCategoricalColorsinDataRangeOnly = 0
-    scalars_LUT.AutomaticRescaleRangeMode = "Grow and update on 'Apply'"
-    scalars_LUT.RescaleOnVisibilityChange = 0
-    scalars_LUT.TransferFunction2D = scalars_TF2D
-    scalars_LUT.RGBPoints = [-86.19999694824219, 0.231373, 0.298039, 0.752941, -86.19218444824219, 0.865003, 0.865003, 0.865003, -86.18437194824219, 0.705882, 0.0156863, 0.14902]
-    scalars_LUT.UseLogScale = 0
-    scalars_LUT.UseOpacityControlPointsFreehandDrawing = 0
-    scalars_LUT.ShowDataHistogram = 0
-    scalars_LUT.AutomaticDataHistogramComputation = 0
-    scalars_LUT.DataHistogramNumberOfBins = 10
-    scalars_LUT.ColorSpace = 'Diverging'
-    scalars_LUT.UseBelowRangeColor = 0
-    scalars_LUT.BelowRangeColor = [0.0, 0.0, 0.0]
-    scalars_LUT.UseAboveRangeColor = 0
-    scalars_LUT.AboveRangeColor = [0.5, 0.5, 0.5]
-    scalars_LUT.NanColor = [1.0, 1.0, 0.0]
-    scalars_LUT.NanOpacity = 1.0
-    scalars_LUT.Discretize = 1
-    scalars_LUT.NumberOfTableValues = 256
-    scalars_LUT.ScalarRangeInitialized = 1.0
-    scalars_LUT.HSVWrap = 0
-    scalars_LUT.VectorComponent = 0
-    scalars_LUT.VectorMode = 'Magnitude'
-    scalars_LUT.AllowDuplicateScalars = 1
-    scalars_LUT.Annotations = []
-    scalars_LUT.ActiveAnnotatedValues = []
-    scalars_LUT.IndexedColors = []
-    scalars_LUT.IndexedOpacities = []
-    scalars_LUT.EnableOpacityMapping = 0
-    # Rescale transfer function
-    scalars_LUT.RescaleTransferFunction(-86.19999694824219, 40.0)
-    # get opacity transfer function/opacity map for 'Scalars_'
     scalars_PWF = simple.GetOpacityTransferFunction('Scalars_')
-    scalars_PWF.Points = [-86.19999694824219, 0.0, 0.5, 0.0, -86.18437194824219, 1.0, 0.5, 0.0]
-    scalars_PWF.AllowDuplicateScalars = 1
-    scalars_PWF.UseLogScale = 0
-    scalars_PWF.ScalarRangeInitialized = 1
-    # Rescale transfer function
-    scalars_PWF.RescaleTransferFunction(-86.19999694824219, 40.0)
-    # Rescale 2D transfer function
-    scalars_TF2D.RescaleTransferFunction(-86.19999694824219, 40.0, 0.0, 1.0)
+    scalars_TF2D = simple.GetTransferFunction2D('Scalars_')
+    scalars_LUT.RescaleTransferFunction(-80.0, 40.0)
+    scalars_PWF.RescaleTransferFunction(-80.0, 40.0)
+    scalars_TF2D.RescaleTransferFunction(-80.0, 40.0, 0.0, 1.0)
 
 state.n_estimulos = 0
 # Load function, runs every time server starts
-def load_data(**kwargs):
+def init(**kwargs):
+    load_data("EX01", change=False)
+def load_data(nf, change):
     global time_values, representation, reader, show_graph
-    reader = simple.PVDReader(FileName="./outputs/temp/simulation_result.pvd")
+    simple.Delete(reader)
+    del reader
+
+    view = simple.GetRenderView()
+    reader = simple.PVDReader(guiName="currentPVD", FileName="./outputs/"+nf+"/simulation_result.pvd")
     reader.CellArrays = ['Scalars_']
     reader.UpdatePipeline()
     representation = simple.Show(reader, view)
@@ -166,6 +128,8 @@ def load_data(**kwargs):
 
     #Config  colormap:
     colormap()
+
+    update_domain_params()
 
 
 
@@ -274,6 +238,8 @@ def readini(nome_arquivo):
                 config[current_section] = {}
                 if current_section.split("_")[0] == "stim":
                     state.n_estimulos+=1
+                if current_section == "example":
+                    load_data(nome_arquivo.split("_")[0], change=True)
             else:
                 parts = line.split('=', 1)
                 if len(parts) == 2:
@@ -826,7 +792,7 @@ def update_domain_params():
 update_domain_params()
 
 #Chama função de carregar dados quando o servidor inicia
-ctrl.on_server_ready.add(load_data)
+ctrl.on_server_ready.add(init)
 
 #Inicia o servidor
 server.start()
