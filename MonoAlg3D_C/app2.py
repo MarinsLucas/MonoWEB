@@ -27,6 +27,12 @@ class SimuladorThread(threading.Thread):
         while True:
             if processo.poll() is None:
                 print("O processo está rodando")
+                vuetify.VProgressLinear(
+                    indeterminate=True,
+                    absolute=True,
+                    bottom=True,
+                    active=("trame__busy",), ##Talvez aqui seja uma boa colocar como active o "processo.poll()", será que funciona?
+                )
                 time.sleep(1)
             else:
                 self.callback()
@@ -89,22 +95,23 @@ library_file_options = ["shared_libs/libToRORd_dynCl_mixed_endo_mid_epi.so", "sh
 stimuli_main_function_options = ["stim_if_x_less_than", "stim_if_y_less_than", "stim_if_z_less_than", "stim_if_x_greater_equal_than","stim_if_y_greater_equal_than", "stim_if_z_greater_equal_than", "stim_sphere",  "stim_x_y_limits", "stim_x_y_z_limits",
                                  "stim_if_inside_circle_than" ]
 
-examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protocol.ini", "EX03_plain_mesh_with_ischemia.ini", "EX04_3dwedge_healthy.ini"]
+examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protocol.ini", "EX03_plain_mesh_with_ischemia.ini", "EX04_3dwedge_healthy.ini", "EX05_spiral_break_up.ini"]
 #Variáveis dos estímulos:
 stimuli_main_function_selected_dicionary = {}
 
-def colormap():
+def colormap(min, max):
     scalars_LUT = simple.GetColorTransferFunction('Scalars_')
     scalars_PWF = simple.GetOpacityTransferFunction('Scalars_')
     scalars_TF2D = simple.GetTransferFunction2D('Scalars_')
-    scalars_LUT.RescaleTransferFunction(-80.0, 40.0)
-    scalars_PWF.RescaleTransferFunction(-80.0, 40.0)
-    scalars_TF2D.RescaleTransferFunction(-80.0, 40.0, 0.0, 1.0)
+    scalars_LUT.RescaleTransferFunction(min, max)
+    scalars_PWF.RescaleTransferFunction(min, max)
+    scalars_TF2D.RescaleTransferFunction(min, max, 0.0, 1.0)
 
 state.n_estimulos = 0
 # Load function, runs every time server starts
 def init(**kwargs):
     load_data("EX01", change=False)
+
 def load_data(nf, change):
     global time_values, representation, reader, show_graph
     simple.Delete(reader)
@@ -125,9 +132,6 @@ def load_data(nf, change):
     simple.ResetCamera()
     view.CenterOfRotation = view.CameraFocalPoint
     state.n_estimulos = 0
-
-    #Config  colormap:
-    colormap()
 
     update_domain_params()
 
@@ -316,7 +320,10 @@ def readini(nome_arquivo):
 
 
     state.library_file_select = config["ode_solver"]["library_file"]
-    
+    if state.library_file_select == "shared_libs/libmitchell_shaeffer_2003.so" or state.library_file_select == "shared_libs/libfhn_mod.so":
+        colormap(0.0, 1.0)
+    else:
+        colormap(-80, 40)
     for i in range(int(state.n_estimulos)):
         state["start_stim_"+str(i)] = config["stim_"+str(i+1)]["start"]
         state["duration_"+str(i)] = config["stim_"+str(i+1)]["duration"]
@@ -527,6 +534,7 @@ def runMonoAlg3D():
 def change_example(example_selected, **kwargs):
     readini(example_selected)
 
+@state.change("play")
 @state.change("advanced_config")
 @state.change("domain_matrix_main_function_selected")
 @state.change("n_estimulos")
@@ -544,7 +552,6 @@ def s0(**kwargs):
     update_domain_params()
 
 def update_domain_params():
-    print("ATUALIZOU")
     with SinglePageWithDrawerLayout(server) as layout:
         
         layout.title.set_text("MonoWEB")
@@ -772,14 +779,19 @@ def update_domain_params():
                 vuetify.VIcon("mdi-chevron-left")
             
             vuetify.VTextField(v_model=("time_value", 0), change=update_frame, number = True, hint="Real Time (ms)", persistent_hint=True, style="width: 5px; height: 100%") #Esse style não funciona no texto, mas funciona em outros elementos 
-            
             with vuetify.VBtn(icon=True, click=addTime):
                 vuetify.VIcon("mdi-chevron-right")
+            if(not state.play):
 
-            with vuetify.VBtn(
-                icon=True,
-                click=playAnimation,):
-                vuetify.VIcon("mdi-play")
+                with vuetify.VBtn(
+                    icon=True,
+                    click=playAnimation,):
+                    vuetify.VIcon("mdi-play")
+            else:
+                with vuetify.VBtn(
+                    icon=True,
+                    click=playAnimation,):
+                    vuetify.VIcon("mdi-pause")
 
             with vuetify.VBtn(icon=True, click=lastTime):
                 vuetify.VIcon("mdi-page-last")

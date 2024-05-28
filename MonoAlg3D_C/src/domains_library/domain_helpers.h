@@ -17,7 +17,7 @@ int set_cuboid_domain_mesh(struct grid *the_grid, real_cpu start_dx, real_cpu st
                            real_cpu side_length_z);
 int set_square_mesh(struct config *config, struct grid *the_grid);
 
-void set_benchmark_domain(struct grid *the_grid);
+void set_benchmark_domain(struct grid *the_grid, real_cpu sx, real_cpu sy, real_cpu sz);
 void set_cuboid_domain(struct grid *the_grid, real_cpu sizeX, real_cpu sizeY, real_cpu sizeZ);
 
 void set_custom_mesh(struct grid *the_grid, const char *file_name, size_t size, char *read_format);
@@ -46,11 +46,18 @@ void set_plain_fibrosis_using_file(struct grid *the_grid, const char filename[])
 void set_plain_fibrosis_inside_region(struct grid *the_grid, real_cpu phi, unsigned fib_seed, double min_x, double max_x, double min_y, double max_y,
                                       double min_z, double max_z);
 
+void set_plain_fibrosis_source_sink_region (struct grid *the_grid, real_cpu phi, unsigned fib_seed, const double min_x, const double max_x, const double min_y,
+                                      const double max_y, const double min_z, const double max_z,
+                                      real_cpu source_sink_min_x, real_cpu source_sink_max_x, real_cpu side_length);
+
 uint32_t set_custom_mesh_from_file(struct grid *the_grid, const char *mesh_file, uint32_t num_volumes, double start_h, uint8_t num_extra_fields,
                                    set_custom_data_for_mesh_fn set_custom_data_for_mesh);
 
 
 void set_cube_sphere_fibrosis(struct grid *the_grid, real_cpu phi, real_cpu sphere_center[3], real_cpu sphere_radius, unsigned fib_seed);
+
+void set_cuboid_sphere_fibrosis_with_conic_path (struct grid *the_grid, real_cpu phi, real_cpu plain_center, real_cpu sphere_radius, real_cpu bz_size, real_cpu bz_radius,
+                               unsigned fib_seed, real_cpu cone_slope);
 
 int calc_num_refs(real_cpu start_h, real_cpu desired_h);
 
