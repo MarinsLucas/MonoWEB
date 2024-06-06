@@ -20,10 +20,10 @@ class SimuladorThread(threading.Thread):
         self.callback = callback 
     def run(self):
         #Testar isso daqui
-        #processo = subprocess.Popen("./bin/MonoAlg3D -c ./example_configs/custom.ini", shell=True)
+        processo = subprocess.Popen("wsl ./bin/MonoAlg3D -c ./example_configs/custom.ini", shell=True)
         
         #Apenas um exemplo para demosntrar
-        processo = subprocess.Popen("C:/Users/lucas/AppData/Local/Programs/Python/Python312/python.exe c:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/exemplo.py")
+        #processo = subprocess.Popen("C:/Users/lucas/AppData/Local/Programs/Python/Python312/python.exe c:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/exemplo.py")
         while True:
             if processo.poll() is None:
                 print("O processo está rodando")
@@ -241,6 +241,7 @@ def readini(nome_arquivo):
                 current_section = match.group(1)
                 config[current_section] = {}
                 if current_section.split("_")[0] == "stim":
+                    print(current_section)
                     state.n_estimulos+=1
                 if current_section == "example":
                     load_data(nome_arquivo.split("_")[0], change=True)
@@ -394,10 +395,10 @@ def runMonoAlg3D():
         file.write("[assembly_matrix]\ninit_function=set_initial_conditions_fvm\nsigma_x="+str(state.sigma_x)+"\nsigma_y="+str(state.sigma_y)+ "\nsigma_z="+ str(state.sigma_z) + "\nmain_function=homogeneous_sigma_assembly_matrix\n")
         
         #linear system solver
-        file.write("[linear_system_solver]\ntolerance=1e-16\nuse_preconditioner=no\nmax_iterations=200\nuse_gpu=true\ninit_function=init_conjugate_gradient\nend_function=end_conjugate_gradient\nmain_function=conjugate_gradient\n")
+        file.write("[linear_system_solver]\ntolerance=1e-16\nuse_preconditioner=no\nmax_iterations=200\nuse_gpu=false\ninit_function=init_conjugate_gradient\nend_function=end_conjugate_gradient\nmain_function=conjugate_gradient\n")
 
         #domain
-        file.write("[domain]\nname=" + str(state.domain_name) + "\nstart_dx=" + str(state.start_dx) + "\nstart_dy=" + str(state.start_dy) + "\nstart_dz=" + str(state.start_dz)+ "\nmain_function=" + str(state.domain_matrix_main_function_selected))
+        file.write("[domain]\nname=Domain\nnum_layers =1" + "\nstart_dx=" + str(state.start_dx) + "\nstart_dy=" + str(state.start_dy) + "\nstart_dz=" + str(state.start_dz)+ "\nmain_function=" + str(state.domain_matrix_main_function_selected))
         
         if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_mesh":
             file.write("\nside_length_x=" + str(state.side_length_x))
@@ -456,7 +457,7 @@ def runMonoAlg3D():
             file.write("\nside_length="+str(state.side_length))
 
         #ode_solver
-        file.write("\n[ode_solver]\ndt=0.02\nuse_gpu=yes\ngpu_id=0\nlibrary_file="+str(state.library_file_select))
+        file.write("\n[ode_solver]\ndt=0.02\nuse_gpu=no\ngpu_id=0\nlibrary_file="+str(state.library_file_select))
 
         #stim
         for i in range(state.n_estimulos):
