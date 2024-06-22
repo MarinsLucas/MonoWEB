@@ -627,3 +627,73 @@ SET_EXTRA_DATA(set_extra_data_trovato) {
     return (void*)extra_data;
 
 }
+
+// Joao Banhato - Long QT example
+SET_EXTRA_DATA(set_extra_data_for_cuboid_sphere_fibrotic_mesh_with_conic_path) {
+    
+    uint32_t num_active_cells = the_grid->num_active_cells;
+    struct cell_node ** ac = the_grid->active_cells;
+
+    struct extra_data_for_tt3 *extra_data = NULL;
+    extra_data = set_common_tt3_data(config, num_active_cells);
+
+    // Divide the domain in three sections (ENDO/MID/EPI)
+    // The percentages were taken from the ToRORd paper (Transmural experiment)
+    real side_length = the_grid->mesh_side_length.x;
+    // real side_length_endo = side_length*0.01;
+    // real side_length_mid = side_length_endo + side_length*0.18;
+    // real side_length_epi = side_length_mid + side_length*0.81;
+    real side_length_endo = side_length*0.01;
+    real side_length_mid = side_length_endo + side_length*0.18;
+    real side_length_epi = side_length_mid + side_length*0.81;
+
+    real plain_center_x = 0.0;
+    GET_PARAMETER_NUMERIC_VALUE_OR_REPORT_ERROR(real, plain_center_x, config, "plain_center_x");
+
+    real plain_center_y = 0.0;
+    GET_PARAMETER_NUMERIC_VALUE_OR_REPORT_ERROR(real, plain_center_y, config, "plain_center_y");
+
+    real border_zone_size = 0.0;
+    GET_PARAMETER_NUMERIC_VALUE_OR_REPORT_ERROR(real, border_zone_size, config, "border_zone_size");
+
+    real sphere_radius = 0.0;
+    GET_PARAMETER_NUMERIC_VALUE_OR_REPORT_ERROR(real, sphere_radius, config, "sphere_radius");
+
+    OMP(parallel for)
+    for (int i = 0; i < num_active_cells; i++) {
+        real center_x = (real)ac[i]->center.x;
+        real center_y = (real)ac[i]->center.y;
+        //TODO: Maybe we want the distance from the Z as well
+        //real center_z = (real)ac[i]->center_z;
+
+        // Tag the model transmurality
+        // ENDO=0, MID=1, EPI=2
+        if (center_x < side_length_endo)
+            extra_data->transmurality[i] = 0.0;
+        else if (center_x >= side_length_endo && center_x < side_length_mid)
+            extra_data->transmurality[i] = 1.0;
+        else
+            extra_data->transmurality[i] = 2.0;
+
+        // Tag the fibrosis region
+        if(FIBROTIC(ac[i])) {
+            extra_data->fibrosis[i] = 0.0;
+        }
+        else if(BORDER_ZONE(ac[i])) {
+            real distanceFromCenter = sqrtf((center_x - plain_center_x)*(center_x - plain_center_x) + (center_y - plain_center_y)*(center_y - plain_center_y));
+            distanceFromCenter = (distanceFromCenter - sphere_radius)/border_zone_size;
+            extra_data->fibrosis[i] = distanceFromCenter;
+
+        }
+        else {
+            extra_data->fibrosis[i] = 1.0;
+        }
+    }
+
+    //for (int i = 0; i < num_active_cells; i++) {
+    //    printf("%f\n",extra_data->transmurality[i]);
+    //}
+    
+    SET_EXTRA_DATA_SIZE(sizeof(struct extra_data_for_tt3));
+    return (void*)extra_data;
+}
