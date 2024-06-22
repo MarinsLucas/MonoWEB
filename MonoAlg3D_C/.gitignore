@@ -83,7 +83,6 @@ test_headers/erro.txt
 test_headers/test_h.c
 test_headers/test_h
 
-outputs/
 results/
 cuboid_tt2004_gpu/
 *.ctags

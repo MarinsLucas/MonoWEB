@@ -1,0 +1,323 @@
+Command line to reproduce this simulation:
+./bin/MonoAlg3D -c example_configs/EX03_plain_mesh_with_ischemia.ini 
+For reproducibility purposes the configuration file was copied to file: ./outputs/EX03/original_configuration.ini
+======================================================================
+No configuration provided to make simulation checkpoints! Chekpoints will not be created!
+======================================================================
+Initial mesh side length: 102400.000000 µm x 102400.000000 µm x 102400.000000 µm
+Loading cuboid mesh with 55000.000000 µm x 55000.000000 µm x 100.000000 µm using dx 100.000000 µm, dy 100.000000 µm, dz 100.000000 µm
+Refined 1 of 1 (36 cells)
+Refined 1 of 1 (148 cells)
+Refined 1 of 1 (596 cells)
+Refined 1 of 1 (2388 cells)
+Refined 1 of 1 (9556 cells)
+Refined 1 of 1 (38228 cells)
+Refined 1 of 1 (152916 cells)
+Refined 1 of 1 (611668 cells)
+Refined 1 of 1 (2446676 cells)
+Making 0.00 % of cells inactive
+Using 1508201274 as seed
+Setting ODE's initial conditions
+Using ten Tusscher 3 ENDO CPU model
+======================================================================
+System parameters: 
+======================================================================
+[main] Using OpenMP with 8 threads
+[monodomain_solver] Beta = 0.1400000000, Cm = 1.0000000000
+[monodomain_solver] PDE time step = 0.0200000000
+[monodomain_solver] ODE min time step = 0.0200000000
+[monodomain_solver] Simulation Final Time = 1000.000000
+======================================================================
+[ode_solver] Using shared_libs/libten_tusscher_3_endo.so as model lib
+[ode_solver] Initial V: -86.199997
+[ode_solver] Number of ODEs in cell model: 12
+======================================================================
+[grid] Initial N. of Elements = 302500
+======================================================================
+[linear_system_solver] configuration:
+[linear_system_solver] library = ./shared_libs/libdefault_linear_system_solver.so
+[linear_system_solver] main function = conjugate_gradient
+[linear_system_solver] init function = init_conjugate_gradient
+[linear_system_solver] end function = end_conjugate_gradient
+[linear_system_solver] tolerance = 1e-16
+[linear_system_solver] use_preconditioner = no
+[linear_system_solver] max_iterations = 200
+[linear_system_solver] use_gpu = false
+======================================================================
+[save_mesh] configuration:
+[save_mesh] library = ./shared_libs/libdefault_save_mesh.so
+[save_mesh] main function = save_as_vtu
+[save_mesh] init function = init_save_as_vtk_or_vtu
+[save_mesh] end function = end_save_as_vtk_or_vtu
+[save_mesh] print_rate = 250
+[save_mesh] output_dir = ./outputs/EX03
+[save_mesh] save_pvd = true
+[save_mesh] file_prefix = V
+======================================================================
+Stimulus name: stim_1
+[stim] configuration:
+[stim] library = ./shared_libs/libdefault_stimuli.so
+[stim] main function = stim_if_y_less_than
+[stim] start = 0.0
+[stim] duration = 2.0
+[stim] current = -38.0
+[stim] y_limit = 2500.0
+======================================================================
+Stimulus name: stim_2
+[stim] configuration:
+[stim] library = ./shared_libs/libdefault_stimuli.so
+[stim] main function = stim_if_y_less_than
+[stim] start = 375.0
+[stim] duration = 2.0
+[stim] current = -38.0
+[stim] y_limit = 2500.0
+======================================================================
+[domain] configuration:
+[domain] library = ./shared_libs/libdefault_domains.so
+[domain] main function = initialize_grid_with_plain_and_sphere_fibrotic_mesh
+[domain] name = Plain Mesh with ischemia inside circle
+[domain] start_dx = 100.0
+[domain] start_dy = 100.0
+[domain] start_dz = 100.0
+[domain] num_layers = 1
+[domain] side_length = 55000
+[domain] seed = 1508201274
+[domain] phi = 0.0
+[domain] plain_center = 27550.0
+[domain] sphere_radius = 15000.0
+[domain] border_zone_radius = 22500.0
+[domain] border_zone_size = 7500.0
+======================================================================
+[extra_data] configuration:
+[extra_data] library = ./shared_libs/libdefault_extra_data.so
+[extra_data] main function = set_extra_data_for_fibrosis_sphere
+[extra_data] Ko = 9.0
+[extra_data] GNa_multiplicator = 0.75
+[extra_data] GCaL_multiplicator = 0.75
+[extra_data] Ikatp_multiplicator = 0.01
+[extra_data] plain_center = 27550.0
+[extra_data] sphere_radius = 15000.0
+[extra_data] border_zone_radius = 22500.0
+[extra_data] border_zone_size = 7500.0
+======================================================================
+[update_monodomain] configuration:
+[update_monodomain] library = ./shared_libs/libdefault_update_monodomain.so
+[update_monodomain] main function = update_monodomain_default
+======================================================================
+[assembly_matrix] configuration:
+[assembly_matrix] library = ./shared_libs/libdefault_matrix_assembly.so
+[assembly_matrix] main function = homogeneous_sigma_assembly_matrix
+[assembly_matrix] init function = set_initial_conditions_fvm
+[assembly_matrix] sigma_x = 0.00005336
+[assembly_matrix] sigma_y = 0.00005336
+[assembly_matrix] sigma_z = 0.00005336
+======================================================================
+Solving EDO 1 times before solving PDE
+Starting simulation
+t = 0.000000, Iterations = 9, Error Norm = 9.440009e-17, Number of Cells:302500, CG Iterations time: 184876 us, Total Iteration time: 1101180 us
+t = 5.000000, Iterations = 9, Error Norm = 1.468451e-17, Number of Cells:302500, CG Iterations time: 167445 us, Total Iteration time: 963575 us
+t = 10.000000, Iterations = 9, Error Norm = 2.962825e-17, Number of Cells:302500, CG Iterations time: 185807 us, Total Iteration time: 1056742 us
+t = 15.000000, Iterations = 10, Error Norm = 1.660980e-18, Number of Cells:302500, CG Iterations time: 207307 us, Total Iteration time: 1023284 us
+t = 20.000000, Iterations = 9, Error Norm = 2.859524e-17, Number of Cells:302500, CG Iterations time: 193282 us, Total Iteration time: 1014882 us
+t = 25.000000, Iterations = 9, Error Norm = 1.820127e-17, Number of Cells:302500, CG Iterations time: 170770 us, Total Iteration time: 994929 us
+t = 30.000000, Iterations = 9, Error Norm = 2.211245e-17, Number of Cells:302500, CG Iterations time: 178432 us, Total Iteration time: 1071997 us
+t = 35.000000, Iterations = 9, Error Norm = 4.390469e-17, Number of Cells:302500, CG Iterations time: 183490 us, Total Iteration time: 1032070 us
+t = 40.000000, Iterations = 9, Error Norm = 7.861169e-17, Number of Cells:302500, CG Iterations time: 182711 us, Total Iteration time: 1021870 us
+t = 45.000000, Iterations = 9, Error Norm = 9.273843e-17, Number of Cells:302500, CG Iterations time: 174569 us, Total Iteration time: 991033 us
+t = 50.000000, Iterations = 10, Error Norm = 1.073066e-18, Number of Cells:302500, CG Iterations time: 209634 us, Total Iteration time: 1070077 us
+t = 55.000000, Iterations = 10, Error Norm = 2.705084e-18, Number of Cells:302500, CG Iterations time: 218644 us, Total Iteration time: 1057252 us
+t = 60.000000, Iterations = 10, Error Norm = 5.014014e-18, Number of Cells:302500, CG Iterations time: 186016 us, Total Iteration time: 989365 us
+t = 65.000000, Iterations = 10, Error Norm = 8.005647e-18, Number of Cells:302500, CG Iterations time: 263339 us, Total Iteration time: 1302021 us
+t = 70.000000, Iterations = 10, Error Norm = 1.818041e-17, Number of Cells:302500, CG Iterations time: 220557 us, Total Iteration time: 1079075 us
+t = 75.000000, Iterations = 10, Error Norm = 2.802201e-17, Number of Cells:302500, CG Iterations time: 216756 us, Total Iteration time: 1119887 us
+t = 80.000000, Iterations = 10, Error Norm = 5.184796e-17, Number of Cells:302500, CG Iterations time: 170479 us, Total Iteration time: 965932 us
+t = 85.000000, Iterations = 10, Error Norm = 9.105070e-17, Number of Cells:302500, CG Iterations time: 204199 us, Total Iteration time: 1061131 us
+t = 90.000000, Iterations = 11, Error Norm = 2.080186e-18, Number of Cells:302500, CG Iterations time: 200866 us, Total Iteration time: 1022323 us
+t = 95.000000, Iterations = 11, Error Norm = 1.783718e-18, Number of Cells:302500, CG Iterations time: 211036 us, Total Iteration time: 989000 us
+t = 100.000000, Iterations = 11, Error Norm = 2.451993e-18, Number of Cells:302500, CG Iterations time: 234996 us, Total Iteration time: 1170260 us
+t = 105.000000, Iterations = 11, Error Norm = 3.270128e-18, Number of Cells:302500, CG Iterations time: 205151 us, Total Iteration time: 1028455 us
+t = 110.000000, Iterations = 11, Error Norm = 4.150284e-18, Number of Cells:302500, CG Iterations time: 209052 us, Total Iteration time: 1025665 us
+t = 115.000000, Iterations = 11, Error Norm = 4.645710e-18, Number of Cells:302500, CG Iterations time: 207308 us, Total Iteration time: 1025224 us
+t = 120.000000, Iterations = 11, Error Norm = 7.296918e-18, Number of Cells:302500, CG Iterations time: 205050 us, Total Iteration time: 1055893 us
+t = 125.000000, Iterations = 11, Error Norm = 8.697365e-18, Number of Cells:302500, CG Iterations time: 208889 us, Total Iteration time: 1056630 us
+t = 130.000000, Iterations = 11, Error Norm = 1.117156e-17, Number of Cells:302500, CG Iterations time: 213535 us, Total Iteration time: 1020991 us
+t = 135.000000, Iterations = 11, Error Norm = 1.376215e-17, Number of Cells:302500, CG Iterations time: 211656 us, Total Iteration time: 1034978 us
+t = 140.000000, Iterations = 11, Error Norm = 1.606613e-17, Number of Cells:302500, CG Iterations time: 206317 us, Total Iteration time: 1007096 us
+t = 145.000000, Iterations = 11, Error Norm = 1.825238e-17, Number of Cells:302500, CG Iterations time: 217556 us, Total Iteration time: 1058837 us
+t = 150.000000, Iterations = 11, Error Norm = 1.308624e-17, Number of Cells:302500, CG Iterations time: 206165 us, Total Iteration time: 1028323 us
+t = 155.000000, Iterations = 11, Error Norm = 7.714686e-18, Number of Cells:302500, CG Iterations time: 213323 us, Total Iteration time: 1044562 us
+t = 160.000000, Iterations = 11, Error Norm = 4.166663e-18, Number of Cells:302500, CG Iterations time: 237791 us, Total Iteration time: 1130612 us
+t = 165.000000, Iterations = 9, Error Norm = 1.552176e-17, Number of Cells:302500, CG Iterations time: 163642 us, Total Iteration time: 967435 us
+t = 170.000000, Iterations = 5, Error Norm = 1.552955e-18, Number of Cells:302500, CG Iterations time: 90325 us, Total Iteration time: 898182 us
+t = 175.000000, Iterations = 4, Error Norm = 4.680818e-17, Number of Cells:302500, CG Iterations time: 67157 us, Total Iteration time: 878289 us
+t = 180.000000, Iterations = 4, Error Norm = 3.006872e-18, Number of Cells:302500, CG Iterations time: 66357 us, Total Iteration time: 863423 us
+t = 185.000000, Iterations = 3, Error Norm = 3.613733e-17, Number of Cells:302500, CG Iterations time: 42646 us, Total Iteration time: 839715 us
+t = 190.000000, Iterations = 3, Error Norm = 2.574921e-17, Number of Cells:302500, CG Iterations time: 45633 us, Total Iteration time: 850173 us
+t = 195.000000, Iterations = 3, Error Norm = 1.586911e-17, Number of Cells:302500, CG Iterations time: 48810 us, Total Iteration time: 863783 us
+t = 200.000000, Iterations = 3, Error Norm = 7.877821e-18, Number of Cells:302500, CG Iterations time: 46863 us, Total Iteration time: 859240 us
+t = 205.000000, Iterations = 3, Error Norm = 4.215179e-18, Number of Cells:302500, CG Iterations time: 47049 us, Total Iteration time: 872057 us
+t = 210.000000, Iterations = 3, Error Norm = 2.876545e-18, Number of Cells:302500, CG Iterations time: 51311 us, Total Iteration time: 906104 us
+t = 215.000000, Iterations = 3, Error Norm = 2.497375e-18, Number of Cells:302500, CG Iterations time: 49113 us, Total Iteration time: 916186 us
+t = 220.000000, Iterations = 3, Error Norm = 2.467898e-18, Number of Cells:302500, CG Iterations time: 51039 us, Total Iteration time: 879336 us
+t = 225.000000, Iterations = 3, Error Norm = 2.574968e-18, Number of Cells:302500, CG Iterations time: 52659 us, Total Iteration time: 871422 us
+t = 230.000000, Iterations = 3, Error Norm = 2.762070e-18, Number of Cells:302500, CG Iterations time: 51514 us, Total Iteration time: 879103 us
+t = 235.000000, Iterations = 3, Error Norm = 3.023058e-18, Number of Cells:302500, CG Iterations time: 48690 us, Total Iteration time: 879274 us
+t = 240.000000, Iterations = 3, Error Norm = 3.369104e-18, Number of Cells:302500, CG Iterations time: 49888 us, Total Iteration time: 895635 us
+t = 245.000000, Iterations = 3, Error Norm = 3.837523e-18, Number of Cells:302500, CG Iterations time: 50461 us, Total Iteration time: 870468 us
+t = 250.000000, Iterations = 3, Error Norm = 4.585538e-18, Number of Cells:302500, CG Iterations time: 44684 us, Total Iteration time: 921334 us
+t = 255.000000, Iterations = 3, Error Norm = 6.010698e-18, Number of Cells:302500, CG Iterations time: 48553 us, Total Iteration time: 897156 us
+t = 260.000000, Iterations = 3, Error Norm = 9.342436e-18, Number of Cells:302500, CG Iterations time: 47956 us, Total Iteration time: 864389 us
+t = 265.000000, Iterations = 3, Error Norm = 2.982933e-17, Number of Cells:302500, CG Iterations time: 49678 us, Total Iteration time: 859387 us
+t = 270.000000, Iterations = 4, Error Norm = 1.433942e-18, Number of Cells:302500, CG Iterations time: 72444 us, Total Iteration time: 891286 us
+t = 275.000000, Iterations = 4, Error Norm = 4.805825e-18, Number of Cells:302500, CG Iterations time: 79145 us, Total Iteration time: 890572 us
+t = 280.000000, Iterations = 4, Error Norm = 1.264233e-17, Number of Cells:302500, CG Iterations time: 75723 us, Total Iteration time: 930115 us
+t = 285.000000, Iterations = 4, Error Norm = 6.991091e-17, Number of Cells:302500, CG Iterations time: 69113 us, Total Iteration time: 898580 us
+t = 290.000000, Iterations = 5, Error Norm = 4.167555e-18, Number of Cells:302500, CG Iterations time: 89120 us, Total Iteration time: 914240 us
+t = 295.000000, Iterations = 5, Error Norm = 8.194197e-18, Number of Cells:302500, CG Iterations time: 88440 us, Total Iteration time: 885216 us
+t = 300.000000, Iterations = 5, Error Norm = 7.195617e-18, Number of Cells:302500, CG Iterations time: 93451 us, Total Iteration time: 947019 us
+t = 305.000000, Iterations = 5, Error Norm = 7.844470e-18, Number of Cells:302500, CG Iterations time: 87354 us, Total Iteration time: 930673 us
+t = 310.000000, Iterations = 5, Error Norm = 8.454999e-18, Number of Cells:302500, CG Iterations time: 111248 us, Total Iteration time: 1019195 us
+t = 315.000000, Iterations = 5, Error Norm = 6.891706e-18, Number of Cells:302500, CG Iterations time: 95592 us, Total Iteration time: 978457 us
+t = 320.000000, Iterations = 5, Error Norm = 5.215137e-18, Number of Cells:302500, CG Iterations time: 94119 us, Total Iteration time: 985604 us
+t = 325.000000, Iterations = 5, Error Norm = 4.114575e-18, Number of Cells:302500, CG Iterations time: 95490 us, Total Iteration time: 962090 us
+t = 330.000000, Iterations = 5, Error Norm = 3.168812e-18, Number of Cells:302500, CG Iterations time: 116822 us, Total Iteration time: 1081378 us
+t = 335.000000, Iterations = 5, Error Norm = 2.470030e-18, Number of Cells:302500, CG Iterations time: 104289 us, Total Iteration time: 960011 us
+t = 340.000000, Iterations = 5, Error Norm = 1.932931e-18, Number of Cells:302500, CG Iterations time: 98050 us, Total Iteration time: 935348 us
+t = 345.000000, Iterations = 5, Error Norm = 1.896770e-18, Number of Cells:302500, CG Iterations time: 97832 us, Total Iteration time: 909342 us
+t = 350.000000, Iterations = 5, Error Norm = 2.916479e-18, Number of Cells:302500, CG Iterations time: 102933 us, Total Iteration time: 984528 us
+t = 355.000000, Iterations = 5, Error Norm = 4.583060e-18, Number of Cells:302500, CG Iterations time: 96582 us, Total Iteration time: 907817 us
+t = 360.000000, Iterations = 5, Error Norm = 6.645902e-18, Number of Cells:302500, CG Iterations time: 89319 us, Total Iteration time: 917746 us
+t = 365.000000, Iterations = 5, Error Norm = 7.541044e-18, Number of Cells:302500, CG Iterations time: 97938 us, Total Iteration time: 981261 us
+t = 370.000000, Iterations = 5, Error Norm = 6.003008e-18, Number of Cells:302500, CG Iterations time: 90497 us, Total Iteration time: 929737 us
+t = 375.000000, Iterations = 5, Error Norm = 6.021677e-18, Number of Cells:302500, CG Iterations time: 97805 us, Total Iteration time: 908216 us
+t = 380.000000, Iterations = 9, Error Norm = 1.464540e-17, Number of Cells:302500, CG Iterations time: 191155 us, Total Iteration time: 1076290 us
+t = 385.000000, Iterations = 9, Error Norm = 1.511525e-17, Number of Cells:302500, CG Iterations time: 174801 us, Total Iteration time: 982747 us
+t = 390.000000, Iterations = 9, Error Norm = 3.132136e-17, Number of Cells:302500, CG Iterations time: 197346 us, Total Iteration time: 1066287 us
+t = 395.000000, Iterations = 9, Error Norm = 5.477723e-17, Number of Cells:302500, CG Iterations time: 185768 us, Total Iteration time: 997719 us
+t = 400.000000, Iterations = 9, Error Norm = 5.752500e-17, Number of Cells:302500, CG Iterations time: 178852 us, Total Iteration time: 1014584 us
+t = 405.000000, Iterations = 10, Error Norm = 1.799050e-18, Number of Cells:302500, CG Iterations time: 198622 us, Total Iteration time: 1013220 us
+t = 410.000000, Iterations = 10, Error Norm = 4.063266e-18, Number of Cells:302500, CG Iterations time: 194785 us, Total Iteration time: 1023711 us
+t = 415.000000, Iterations = 10, Error Norm = 7.878563e-18, Number of Cells:302500, CG Iterations time: 205278 us, Total Iteration time: 1039896 us
+t = 420.000000, Iterations = 10, Error Norm = 1.503333e-17, Number of Cells:302500, CG Iterations time: 213673 us, Total Iteration time: 1052563 us
+t = 425.000000, Iterations = 10, Error Norm = 1.699094e-17, Number of Cells:302500, CG Iterations time: 210598 us, Total Iteration time: 1060796 us
+t = 430.000000, Iterations = 10, Error Norm = 1.713336e-17, Number of Cells:302500, CG Iterations time: 196892 us, Total Iteration time: 1004360 us
+t = 435.000000, Iterations = 10, Error Norm = 1.693918e-17, Number of Cells:302500, CG Iterations time: 204766 us, Total Iteration time: 1028351 us
+t = 440.000000, Iterations = 10, Error Norm = 2.401404e-17, Number of Cells:302500, CG Iterations time: 200837 us, Total Iteration time: 1034448 us
+t = 445.000000, Iterations = 10, Error Norm = 3.364606e-17, Number of Cells:302500, CG Iterations time: 189275 us, Total Iteration time: 997626 us
+t = 450.000000, Iterations = 10, Error Norm = 5.286981e-17, Number of Cells:302500, CG Iterations time: 220151 us, Total Iteration time: 1038947 us
+t = 455.000000, Iterations = 10, Error Norm = 5.143892e-17, Number of Cells:302500, CG Iterations time: 193974 us, Total Iteration time: 1015591 us
+t = 460.000000, Iterations = 10, Error Norm = 4.859001e-17, Number of Cells:302500, CG Iterations time: 197037 us, Total Iteration time: 1025824 us
+t = 465.000000, Iterations = 10, Error Norm = 7.837784e-17, Number of Cells:302500, CG Iterations time: 175871 us, Total Iteration time: 968328 us
+t = 470.000000, Iterations = 11, Error Norm = 1.385719e-18, Number of Cells:302500, CG Iterations time: 196042 us, Total Iteration time: 990701 us
+t = 475.000000, Iterations = 11, Error Norm = 1.371563e-18, Number of Cells:302500, CG Iterations time: 195719 us, Total Iteration time: 993248 us
+t = 480.000000, Iterations = 11, Error Norm = 1.666762e-18, Number of Cells:302500, CG Iterations time: 211733 us, Total Iteration time: 1054503 us
+t = 485.000000, Iterations = 11, Error Norm = 2.414196e-18, Number of Cells:302500, CG Iterations time: 212466 us, Total Iteration time: 1038409 us
+t = 490.000000, Iterations = 11, Error Norm = 2.091893e-18, Number of Cells:302500, CG Iterations time: 208495 us, Total Iteration time: 1025093 us
+t = 495.000000, Iterations = 11, Error Norm = 2.692513e-18, Number of Cells:302500, CG Iterations time: 198830 us, Total Iteration time: 1048924 us
+t = 500.000000, Iterations = 11, Error Norm = 3.218835e-18, Number of Cells:302500, CG Iterations time: 205872 us, Total Iteration time: 1033898 us
+t = 505.000000, Iterations = 11, Error Norm = 3.352562e-18, Number of Cells:302500, CG Iterations time: 254362 us, Total Iteration time: 1143012 us
+t = 510.000000, Iterations = 11, Error Norm = 4.232720e-18, Number of Cells:302500, CG Iterations time: 225097 us, Total Iteration time: 1067341 us
+t = 515.000000, Iterations = 11, Error Norm = 4.638640e-18, Number of Cells:302500, CG Iterations time: 252199 us, Total Iteration time: 1105148 us
+t = 520.000000, Iterations = 11, Error Norm = 4.569952e-18, Number of Cells:302500, CG Iterations time: 243539 us, Total Iteration time: 1052595 us
+t = 525.000000, Iterations = 11, Error Norm = 6.965531e-18, Number of Cells:302500, CG Iterations time: 217457 us, Total Iteration time: 1021741 us
+t = 530.000000, Iterations = 11, Error Norm = 6.322888e-18, Number of Cells:302500, CG Iterations time: 193739 us, Total Iteration time: 972032 us
+t = 535.000000, Iterations = 11, Error Norm = 7.849816e-18, Number of Cells:302500, CG Iterations time: 196252 us, Total Iteration time: 983380 us
+t = 540.000000, Iterations = 11, Error Norm = 7.145506e-18, Number of Cells:302500, CG Iterations time: 201122 us, Total Iteration time: 967971 us
+t = 545.000000, Iterations = 11, Error Norm = 5.713474e-18, Number of Cells:302500, CG Iterations time: 197593 us, Total Iteration time: 982017 us
+t = 550.000000, Iterations = 11, Error Norm = 4.614141e-18, Number of Cells:302500, CG Iterations time: 230752 us, Total Iteration time: 1095392 us
+t = 555.000000, Iterations = 11, Error Norm = 3.876013e-18, Number of Cells:302500, CG Iterations time: 207889 us, Total Iteration time: 1109121 us
+t = 560.000000, Iterations = 11, Error Norm = 2.519367e-18, Number of Cells:302500, CG Iterations time: 221362 us, Total Iteration time: 1022456 us
+t = 565.000000, Iterations = 10, Error Norm = 8.347995e-17, Number of Cells:302500, CG Iterations time: 181243 us, Total Iteration time: 975639 us
+t = 570.000000, Iterations = 9, Error Norm = 2.653075e-17, Number of Cells:302500, CG Iterations time: 163398 us, Total Iteration time: 977173 us
+t = 575.000000, Iterations = 8, Error Norm = 9.942164e-17, Number of Cells:302500, CG Iterations time: 147516 us, Total Iteration time: 954140 us
+t = 580.000000, Iterations = 8, Error Norm = 3.384966e-17, Number of Cells:302500, CG Iterations time: 184547 us, Total Iteration time: 1154326 us
+t = 585.000000, Iterations = 8, Error Norm = 2.656233e-17, Number of Cells:302500, CG Iterations time: 142096 us, Total Iteration time: 914478 us
+t = 590.000000, Iterations = 8, Error Norm = 2.610515e-17, Number of Cells:302500, CG Iterations time: 136923 us, Total Iteration time: 911771 us
+t = 595.000000, Iterations = 8, Error Norm = 3.863289e-17, Number of Cells:302500, CG Iterations time: 141566 us, Total Iteration time: 910911 us
+t = 600.000000, Iterations = 8, Error Norm = 5.148441e-17, Number of Cells:302500, CG Iterations time: 135376 us, Total Iteration time: 904051 us
+t = 605.000000, Iterations = 8, Error Norm = 8.503222e-17, Number of Cells:302500, CG Iterations time: 140616 us, Total Iteration time: 926311 us
+t = 610.000000, Iterations = 9, Error Norm = 1.650082e-18, Number of Cells:302500, CG Iterations time: 160340 us, Total Iteration time: 935281 us
+t = 615.000000, Iterations = 9, Error Norm = 2.429672e-18, Number of Cells:302500, CG Iterations time: 153253 us, Total Iteration time: 931096 us
+t = 620.000000, Iterations = 9, Error Norm = 3.104097e-18, Number of Cells:302500, CG Iterations time: 155458 us, Total Iteration time: 926528 us
+t = 625.000000, Iterations = 9, Error Norm = 3.397718e-18, Number of Cells:302500, CG Iterations time: 158295 us, Total Iteration time: 937141 us
+t = 630.000000, Iterations = 9, Error Norm = 4.330036e-18, Number of Cells:302500, CG Iterations time: 163378 us, Total Iteration time: 948996 us
+t = 635.000000, Iterations = 9, Error Norm = 5.095594e-18, Number of Cells:302500, CG Iterations time: 153371 us, Total Iteration time: 921415 us
+t = 640.000000, Iterations = 9, Error Norm = 6.085668e-18, Number of Cells:302500, CG Iterations time: 153053 us, Total Iteration time: 964809 us
+t = 645.000000, Iterations = 9, Error Norm = 6.866286e-18, Number of Cells:302500, CG Iterations time: 152185 us, Total Iteration time: 925630 us
+t = 650.000000, Iterations = 9, Error Norm = 7.547301e-18, Number of Cells:302500, CG Iterations time: 159355 us, Total Iteration time: 926398 us
+t = 655.000000, Iterations = 9, Error Norm = 8.157352e-18, Number of Cells:302500, CG Iterations time: 152223 us, Total Iteration time: 927521 us
+t = 660.000000, Iterations = 9, Error Norm = 9.619546e-18, Number of Cells:302500, CG Iterations time: 154422 us, Total Iteration time: 927763 us
+t = 665.000000, Iterations = 9, Error Norm = 1.058311e-17, Number of Cells:302500, CG Iterations time: 158644 us, Total Iteration time: 942953 us
+t = 670.000000, Iterations = 9, Error Norm = 1.110697e-17, Number of Cells:302500, CG Iterations time: 152289 us, Total Iteration time: 930256 us
+t = 675.000000, Iterations = 9, Error Norm = 1.286480e-17, Number of Cells:302500, CG Iterations time: 166527 us, Total Iteration time: 984083 us
+t = 680.000000, Iterations = 9, Error Norm = 1.312120e-17, Number of Cells:302500, CG Iterations time: 172579 us, Total Iteration time: 987989 us
+t = 685.000000, Iterations = 9, Error Norm = 1.311112e-17, Number of Cells:302500, CG Iterations time: 165682 us, Total Iteration time: 966301 us
+t = 690.000000, Iterations = 9, Error Norm = 1.364106e-17, Number of Cells:302500, CG Iterations time: 162880 us, Total Iteration time: 976779 us
+t = 695.000000, Iterations = 9, Error Norm = 1.451039e-17, Number of Cells:302500, CG Iterations time: 176637 us, Total Iteration time: 1034122 us
+t = 700.000000, Iterations = 9, Error Norm = 1.418511e-17, Number of Cells:302500, CG Iterations time: 194171 us, Total Iteration time: 1014152 us
+t = 705.000000, Iterations = 9, Error Norm = 1.394874e-17, Number of Cells:302500, CG Iterations time: 187789 us, Total Iteration time: 1035198 us
+t = 710.000000, Iterations = 9, Error Norm = 1.328491e-17, Number of Cells:302500, CG Iterations time: 175189 us, Total Iteration time: 984578 us
+t = 715.000000, Iterations = 9, Error Norm = 1.230603e-17, Number of Cells:302500, CG Iterations time: 163648 us, Total Iteration time: 956562 us
+t = 720.000000, Iterations = 9, Error Norm = 8.681519e-18, Number of Cells:302500, CG Iterations time: 169015 us, Total Iteration time: 964713 us
+t = 725.000000, Iterations = 9, Error Norm = 4.979642e-18, Number of Cells:302500, CG Iterations time: 186943 us, Total Iteration time: 1028699 us
+t = 730.000000, Iterations = 9, Error Norm = 1.542332e-18, Number of Cells:302500, CG Iterations time: 161363 us, Total Iteration time: 958018 us
+t = 735.000000, Iterations = 8, Error Norm = 3.072079e-17, Number of Cells:302500, CG Iterations time: 146076 us, Total Iteration time: 958458 us
+t = 740.000000, Iterations = 8, Error Norm = 9.619695e-18, Number of Cells:302500, CG Iterations time: 144350 us, Total Iteration time: 956436 us
+t = 745.000000, Iterations = 8, Error Norm = 7.483529e-18, Number of Cells:302500, CG Iterations time: 144984 us, Total Iteration time: 924932 us
+t = 750.000000, Iterations = 8, Error Norm = 1.152277e-17, Number of Cells:302500, CG Iterations time: 153400 us, Total Iteration time: 962248 us
+t = 755.000000, Iterations = 8, Error Norm = 3.316085e-17, Number of Cells:302500, CG Iterations time: 159755 us, Total Iteration time: 958680 us
+t = 760.000000, Iterations = 9, Error Norm = 4.117370e-18, Number of Cells:302500, CG Iterations time: 182523 us, Total Iteration time: 981131 us
+t = 765.000000, Iterations = 9, Error Norm = 6.638759e-17, Number of Cells:302500, CG Iterations time: 180475 us, Total Iteration time: 1000430 us
+t = 770.000000, Iterations = 10, Error Norm = 1.264338e-17, Number of Cells:302500, CG Iterations time: 209454 us, Total Iteration time: 1119836 us
+t = 775.000000, Iterations = 10, Error Norm = 6.160007e-17, Number of Cells:302500, CG Iterations time: 203439 us, Total Iteration time: 1064760 us
+t = 780.000000, Iterations = 11, Error Norm = 3.966954e-18, Number of Cells:302500, CG Iterations time: 210633 us, Total Iteration time: 1014849 us
+t = 785.000000, Iterations = 11, Error Norm = 9.030420e-18, Number of Cells:302500, CG Iterations time: 208383 us, Total Iteration time: 1002520 us
+t = 790.000000, Iterations = 11, Error Norm = 8.817471e-18, Number of Cells:302500, CG Iterations time: 211690 us, Total Iteration time: 1057034 us
+t = 795.000000, Iterations = 11, Error Norm = 1.445946e-17, Number of Cells:302500, CG Iterations time: 276786 us, Total Iteration time: 1093615 us
+t = 800.000000, Iterations = 11, Error Norm = 1.402534e-17, Number of Cells:302500, CG Iterations time: 213851 us, Total Iteration time: 1028137 us
+t = 805.000000, Iterations = 11, Error Norm = 1.274401e-17, Number of Cells:302500, CG Iterations time: 191311 us, Total Iteration time: 971943 us
+t = 810.000000, Iterations = 11, Error Norm = 1.465558e-17, Number of Cells:302500, CG Iterations time: 202124 us, Total Iteration time: 1009786 us
+t = 815.000000, Iterations = 11, Error Norm = 1.247080e-17, Number of Cells:302500, CG Iterations time: 189971 us, Total Iteration time: 965595 us
+t = 820.000000, Iterations = 11, Error Norm = 1.132148e-17, Number of Cells:302500, CG Iterations time: 191208 us, Total Iteration time: 971444 us
+t = 825.000000, Iterations = 11, Error Norm = 1.431546e-17, Number of Cells:302500, CG Iterations time: 193569 us, Total Iteration time: 974892 us
+t = 830.000000, Iterations = 11, Error Norm = 1.051536e-17, Number of Cells:302500, CG Iterations time: 193763 us, Total Iteration time: 971435 us
+t = 835.000000, Iterations = 11, Error Norm = 5.665646e-18, Number of Cells:302500, CG Iterations time: 229711 us, Total Iteration time: 1026307 us
+t = 840.000000, Iterations = 11, Error Norm = 3.982348e-18, Number of Cells:302500, CG Iterations time: 199213 us, Total Iteration time: 993495 us
+t = 845.000000, Iterations = 11, Error Norm = 2.931092e-18, Number of Cells:302500, CG Iterations time: 211313 us, Total Iteration time: 1004184 us
+t = 850.000000, Iterations = 11, Error Norm = 2.023449e-18, Number of Cells:302500, CG Iterations time: 199301 us, Total Iteration time: 1012116 us
+t = 855.000000, Iterations = 11, Error Norm = 2.172767e-18, Number of Cells:302500, CG Iterations time: 211711 us, Total Iteration time: 1000183 us
+t = 860.000000, Iterations = 11, Error Norm = 2.145385e-18, Number of Cells:302500, CG Iterations time: 208554 us, Total Iteration time: 989422 us
+t = 865.000000, Iterations = 11, Error Norm = 2.893981e-18, Number of Cells:302500, CG Iterations time: 207691 us, Total Iteration time: 1006342 us
+t = 870.000000, Iterations = 11, Error Norm = 2.687043e-18, Number of Cells:302500, CG Iterations time: 202445 us, Total Iteration time: 1018869 us
+t = 875.000000, Iterations = 11, Error Norm = 3.972947e-18, Number of Cells:302500, CG Iterations time: 196781 us, Total Iteration time: 973695 us
+t = 880.000000, Iterations = 11, Error Norm = 4.061930e-18, Number of Cells:302500, CG Iterations time: 192892 us, Total Iteration time: 962721 us
+t = 885.000000, Iterations = 11, Error Norm = 4.680775e-18, Number of Cells:302500, CG Iterations time: 242894 us, Total Iteration time: 1046183 us
+t = 890.000000, Iterations = 11, Error Norm = 5.908926e-18, Number of Cells:302500, CG Iterations time: 189583 us, Total Iteration time: 958422 us
+t = 895.000000, Iterations = 11, Error Norm = 6.558812e-18, Number of Cells:302500, CG Iterations time: 208905 us, Total Iteration time: 1009543 us
+t = 900.000000, Iterations = 11, Error Norm = 7.429381e-18, Number of Cells:302500, CG Iterations time: 195859 us, Total Iteration time: 971162 us
+t = 905.000000, Iterations = 11, Error Norm = 8.772724e-18, Number of Cells:302500, CG Iterations time: 201926 us, Total Iteration time: 978701 us
+t = 910.000000, Iterations = 11, Error Norm = 9.839558e-18, Number of Cells:302500, CG Iterations time: 192294 us, Total Iteration time: 990390 us
+t = 915.000000, Iterations = 11, Error Norm = 1.115374e-17, Number of Cells:302500, CG Iterations time: 193949 us, Total Iteration time: 975945 us
+t = 920.000000, Iterations = 11, Error Norm = 1.330227e-17, Number of Cells:302500, CG Iterations time: 214824 us, Total Iteration time: 1018022 us
+t = 925.000000, Iterations = 11, Error Norm = 7.686082e-18, Number of Cells:302500, CG Iterations time: 208373 us, Total Iteration time: 990436 us
+t = 930.000000, Iterations = 11, Error Norm = 6.549629e-18, Number of Cells:302500, CG Iterations time: 217260 us, Total Iteration time: 993532 us
+t = 935.000000, Iterations = 11, Error Norm = 5.679838e-18, Number of Cells:302500, CG Iterations time: 203601 us, Total Iteration time: 975527 us
+t = 940.000000, Iterations = 11, Error Norm = 3.140915e-18, Number of Cells:302500, CG Iterations time: 213819 us, Total Iteration time: 1000552 us
+t = 945.000000, Iterations = 11, Error Norm = 1.536662e-18, Number of Cells:302500, CG Iterations time: 194359 us, Total Iteration time: 976428 us
+t = 950.000000, Iterations = 9, Error Norm = 1.658927e-17, Number of Cells:302500, CG Iterations time: 160415 us, Total Iteration time: 949739 us
+t = 955.000000, Iterations = 8, Error Norm = 3.929148e-17, Number of Cells:302500, CG Iterations time: 136765 us, Total Iteration time: 911786 us
+t = 960.000000, Iterations = 8, Error Norm = 7.637168e-18, Number of Cells:302500, CG Iterations time: 137061 us, Total Iteration time: 929452 us
+t = 965.000000, Iterations = 8, Error Norm = 3.293281e-18, Number of Cells:302500, CG Iterations time: 138130 us, Total Iteration time: 909147 us
+t = 970.000000, Iterations = 8, Error Norm = 1.900828e-18, Number of Cells:302500, CG Iterations time: 139623 us, Total Iteration time: 911768 us
+t = 975.000000, Iterations = 8, Error Norm = 1.381882e-18, Number of Cells:302500, CG Iterations time: 143857 us, Total Iteration time: 913933 us
+t = 980.000000, Iterations = 7, Error Norm = 9.082904e-17, Number of Cells:302500, CG Iterations time: 119994 us, Total Iteration time: 885906 us
+t = 985.000000, Iterations = 7, Error Norm = 6.828987e-17, Number of Cells:302500, CG Iterations time: 116673 us, Total Iteration time: 888052 us
+t = 990.000000, Iterations = 7, Error Norm = 7.060973e-17, Number of Cells:302500, CG Iterations time: 117327 us, Total Iteration time: 877737 us
+t = 995.000000, Iterations = 7, Error Norm = 5.610051e-17, Number of Cells:302500, CG Iterations time: 118611 us, Total Iteration time: 885595 us
+t = 1000.000000, Iterations = 7, Error Norm = 6.098595e-17, Number of Cells:302500, CG Iterations time: 116155 us, Total Iteration time: 887696 us
+Resolution Time: 9966863193 μs (166.114387 min)
+Total Write Time: 158063591 μs (2.634393 min)
+ODE Total Time: 1338655813 μs (22.310930 min)
+CG Total Time: 8242567833 μs (137.376131 min)
+CG Total Iterations: 431619
+Unmeasured time: 227424470 μs (3.790408 min)
