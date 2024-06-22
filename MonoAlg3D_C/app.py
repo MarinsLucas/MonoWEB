@@ -18,6 +18,7 @@ class SimuladorThread(threading.Thread):
     def __init__(self, callback):
         super().__init__()
         self.callback = callback 
+
     def run(self):
         #Testar isso daqui
         processo = subprocess.Popen("wsl ./bin/MonoAlg3D -c ./example_configs/custom.ini", shell=True)
@@ -36,6 +37,7 @@ class SimuladorThread(threading.Thread):
                 time.sleep(1)
             else:
                 self.callback()
+                print("fim da thread")
                 break
         
 import paraview.web.venv
@@ -110,13 +112,13 @@ def colormap(min, max):
 state.n_estimulos = 0
 # Load function, runs every time server starts
 def init(**kwargs):
-    load_data("EX01", change=False)
+    load_data("EX01")
 
-def load_data(nf, change):
+def load_data(nf):
     global time_values, representation, reader, show_graph
     simple.Delete(reader)
     del reader
-
+ 
     view = simple.GetRenderView()
     reader = simple.PVDReader(guiName="currentPVD", FileName="./outputs/"+nf+"/simulation_result.pvd")
     reader.CellArrays = ['Scalars_']
@@ -128,16 +130,13 @@ def load_data(nf, change):
     state.times =len(time_values)-1
     state.time = 0
     state.play = False
-    state.printRate = 10 #default = 1
+    state.printRate = 1 #default = 1
     simple.ResetCamera()
     view.CenterOfRotation = view.CameraFocalPoint
-    state.n_estimulos = 0
 
-    update_domain_params()
+def load_data_and_update():
+    print("Terminou de executar")
 
-
-
-    
 @ctrl.add("on_server_reload")
 def print_item(item):
     print("Clicked on", item)
@@ -202,6 +201,7 @@ def lastTime():
 def firstTime():
     state.time = 0
     html_view.update_image()
+    load_data("temp")
     pass
 
 def addstim():
@@ -244,7 +244,7 @@ def readini(nome_arquivo):
                     print(current_section)
                     state.n_estimulos+=1
                 if current_section == "example":
-                    load_data(nome_arquivo.split("_")[0], change=True)
+                    load_data(nome_arquivo.split("_")[0]) 
             else:
                 parts = line.split('=', 1)
                 if len(parts) == 2:
@@ -276,9 +276,11 @@ def readini(nome_arquivo):
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_fibrotic_mesh":
         state.seed = config["domain"]["seed"]
         state.phi = config["domain"]["phi"]
+        state.side_length = config["domain"]["side_length"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_source_sink_fibrotic_mesh":
         state.channel_width = config["domain"]["channel_width"]
         state.channel_length = config["domain"]["channel_length"]
+        state.side_length = config["domain"]["side_length"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh":
         state.phi = config["domain"]["phi"]
         state.plain_center = config["domain"]["plain_center"]
@@ -286,14 +288,18 @@ def readini(nome_arquivo):
         state.border_zone_radius = config["domain"]["border_zone_radius"]
         state.border_zone_size = config["domain"]["border_zone_size"]
         state.seed = config["domain"]["seed"] #optional
+        state.side_length = config["domain"]["side_length"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
         state.phi = config["domain"]["phi"]
         state.sphere_center = config["domain"]["sphere_center"] #optional
         state.sphere_radius = config["domain"]["sphere_radius"]
         state.seed = config["domain"]["seed"] #optional
+        print("Tá faltando parâmetros, que eu não sei quais são")
     if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating":
         state.phi = config["domain"]["phi"]
         state.plain_center = config["domain"]["plain_center"]
+        state.sphere_radius = config["domain"]["sphere_radius"]
+        state.side_length = config["domain"]["side_length"]
         state.border_zone_radius = config["domain"]["border_zone_radius"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_fibrotic_region":
         state.phi = config["domain"]["phi"]
@@ -304,6 +310,7 @@ def readini(nome_arquivo):
         state.region_max_y = config["domain"]["region_max_y"]
         state.region_min_z = config["domain"]["region_min_z"]
         state.region_max_z = config["domain"]["region_max_z"]
+        state.side_length = config["domain"]["side_length"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region":
         state.phi = config["domain"]["phi"]
         state.seed = config["domain"]["seed"] #optional
@@ -410,12 +417,15 @@ def runMonoAlg3D():
             file.write("\ncable_length="+str(state.cable_length))
         if state.domain_matrix_main_function_selected == "initialize_grid_with_rabbit_mesh" or state.domain_matrix_main_function_selected  == "initialize_grid_with_benchmark_mesh":
             file.write("\nmaximum_discretization="+str(state.maximum_discretization))
+            file.write("\nmesh_file=meshes/rabheart.alg")
         if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_fibrotic_mesh":
             file.write("\nseed="+str(state.seed))
             file.write("\nphi="+str(state.phi))
+            file.write("\nside_length="+str(state.side_length))
         if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_source_sink_fibrotic_mesh":
             file.write("\nchannel_width=" + str(state.channel_width))
             file.write("\nchannel_length="+str(state.channel_length))
+            file.write("\nside_length="+str(state.side_length))
         if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh":
             file.write("\nphi="+str(state.phi))
             file.write("\nplain_center="+ str(state.plain_center))
@@ -423,15 +433,20 @@ def runMonoAlg3D():
             file.write("\nborder_zone_radius="+str(state.border_zone_radius))
             file.write("\nborder_zone_size="+str(float(state.border_zone_radius) - float(state.sphere_radius)))
             file.write("\nseed="+str(state.seed))
+            file.write("\nside_length="+str(state.side_length))
         if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
             file.write("\nphi="+str(state.phi))
             file.write("\nsphere_center="+str(state.sphere_center))
             file.write("\nsphere_radius="+str(state.sphere_radius))
             file.write("\nseed="+str(state.seed))
+            file.write("\nside_length="+str(state.side_length))
+            print("Tá faltando parâmetro no cuboid with spherical")
         if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating":
             file.write("\nphi="+str(state.phi))
             file.write("\nplain_center="+str(state.plain_center))
             file.write("\nborder_zone_radius="+str(state.border_zone_radius))
+            file.write("\nsphere_radius="+str(state.sphere_radius))
+            file.write("\nside_length="+str(state.side_length))
         if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_fibrotic_region":
             file.write("\nphi="+str(state.phi))
             file.write("\nseed="+str(state.seed))
@@ -441,6 +456,7 @@ def runMonoAlg3D():
             file.write("\nregion_max_y="+str(state.region_max_y))
             file.write("\nregion_min_z="+str(state.region_min_z))
             file.write("\nregion_max_z="+str(state.region_max_z))
+            file.write("\nside_length="+str(state.side_length))
         if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region":
             file.write("\nphi="+str(state.phi))
             file.write("\nseed="+str(state.seed))
@@ -526,7 +542,7 @@ def runMonoAlg3D():
                 file.write("\nmax_y_2="+str(state["max_y_2"+str(i)]))
                 file.write("\nmin_y_2="+str(state["min_y_2"+str(i)]))
 
-    simulador_thread = SimuladorThread(update_domain_params)
+    simulador_thread = SimuladorThread(load_data_and_update)
     simulador_thread.start()
     pass
 
@@ -618,24 +634,30 @@ def update_domain_params():
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_fibrotic_mesh":
                     vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
                     vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_source_sink_fibrotic_mesh":
                     vuetify.VTextField(v_model=("channel_width", 1000), hint="Channel width", persistent_hint=True)
                     vuetify.VTextField(v_model=("channel_length", 1000), hint="Channel length", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh":
                     vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
                     vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
                     vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
                     vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
                     vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh":
                     vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
                     vuetify.VTextField(v_model=("sphere_center", 1000), hint="sphere_center (optional)", persistent_hint=True)
                     vuetify.VTextField(v_model=("sphere_radius", 1000), hint="Sphere radius", persistent_hint=True)
                     vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
+                    print("Tá faltando parâmetro")
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating":
                     vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
                     vuetify.VTextField(v_model=("plain_center", 1000), hint="plain_center", persistent_hint=True)
                     vuetify.VTextField(v_model=("border_zone_radius", 1000), hint="Border Zone Radius", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
+                    vuetify.VTextField(v_model=("sphere_radius", 1000), hint="sphere_radius", persistent_hint=True)
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_fibrotic_region":
                     vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
                     vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
@@ -645,6 +667,7 @@ def update_domain_params():
                     vuetify.VTextField(v_model=("region_max_y", 1000), hint="region_max_y", persistent_hint=True)
                     vuetify.VTextField(v_model=("region_min_z", 1000), hint="region_min_z", persistent_hint=True)
                     vuetify.VTextField(v_model=("region_max_z", 1000), hint="region_max_z", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region":
                     vuetify.VTextField(v_model=("phi", 1000), hint="Fibrosis %", persistent_hint=True)
                     vuetify.VTextField(v_model=("seed", 1000), hint="Seed (optional)", persistent_hint=True)
