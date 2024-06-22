@@ -4,9 +4,9 @@ import time
 if '--virtual-env' in sys.argv:
   virtualEnvPath = sys.argv[sys.argv.index('--virtual-env') + 1]
   # Linux
-  #virtualEnv = virtualEnvPath + '/bin/activate_this.py'
+  virtualEnv = virtualEnvPath + '/bin/activate_this.py'
   # Windows
-  virtualEnv = virtualEnvPath + '/Scripts/activate_this.py'
+  #virtualEnv = virtualEnvPath + '/Scripts/activate_this.py'
   if sys.version_info.major < 3:
     execfile(virtualEnv, dict(__file__=virtualEnv))
   else:
