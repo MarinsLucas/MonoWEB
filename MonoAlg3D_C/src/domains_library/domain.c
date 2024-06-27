@@ -466,4 +466,3 @@ SET_SPATIAL_DOMAIN(initialize_grid_with_cuboid_and_sphere_fibrotic_mesh_with_con
 
     return 1;
 }
-

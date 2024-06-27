@@ -58,7 +58,7 @@ void set_cube_sphere_fibrosis(struct grid *the_grid, real_cpu phi, real_cpu sphe
 
 void set_cuboid_sphere_fibrosis_with_conic_path(struct grid *the_grid, real_cpu phi, real_cpu plain_center_x, real_cpu plain_center_y, \
                                                 real_cpu sphere_radius, real_cpu bz_size, real_cpu bz_radius, unsigned fib_seed, real_cpu cone_slope);
-                                                
+
 int calc_num_refs(real_cpu start_h, real_cpu desired_h);
 
 #endif // MONOALG3D_DOMAIN_HELPERS_H

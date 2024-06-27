@@ -97,7 +97,7 @@ library_file_options = ["shared_libs/libToRORd_dynCl_mixed_endo_mid_epi.so", "sh
 stimuli_main_function_options = ["stim_if_x_less_than", "stim_if_y_less_than", "stim_if_z_less_than", "stim_if_x_greater_equal_than","stim_if_y_greater_equal_than", "stim_if_z_greater_equal_than", "stim_sphere",  "stim_x_y_limits", "stim_x_y_z_limits",
                                  "stim_if_inside_circle_than" ]
 
-examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protocol.ini", "EX03_plain_mesh_with_ischemia.ini", "EX04_3dwedge_healthy.ini", "EX05_spiral_break_up.ini"]
+examples_options = ["EX01_plain_mesh_healthy.ini", "EX02_plain_mesh_S1S2_protocol.ini", "EX03_plain_mesh_with_ischemia.ini", "EX04_3dwedge_healthy.ini", "EX05_spiral_break_up.ini", "EX06_fibrosis.ini", "EX07_ischemia.ini", "EX08_isthmus.ini", "EX09_mixed_conditions.ini", "EX10_qt.ini"]
 #Variáveis dos estímulos:
 stimuli_main_function_selected_dicionary = {}
 
