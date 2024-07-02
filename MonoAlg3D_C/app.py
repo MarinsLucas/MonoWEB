@@ -79,6 +79,7 @@ server = get_server()
 server.client_type = "vue2"
 
 state, ctrl = server.state, server.controller
+state.running = False
 
 animationscene = simple.GetAnimationScene()
 timekeeper = animationscene.TimeKeeper
@@ -181,6 +182,15 @@ def update_contour(position , **kwargs):
     # animationscene = simple.GetAnimationScene()
     animationscene.AnimationTime = position
     html_view.update_image()
+    pass
+
+def visualize_allowed():
+    state.running = False
+    print("rodou a função")
+    update_domain_params()
+
+def visualize():
+    load_data("temp")
     pass
 
 def subTime():
@@ -541,9 +551,10 @@ def runMonoAlg3D():
                 file.write("\nmin_x_2="+str(state["min_x_2"+str(i)]))
                 file.write("\nmax_y_2="+str(state["max_y_2"+str(i)]))
                 file.write("\nmin_y_2="+str(state["min_y_2"+str(i)]))
-
-    simulador_thread = SimuladorThread(load_data_and_update)
+    state.running = True
+    simulador_thread = SimuladorThread(visualize_allowed)
     simulador_thread.start()
+    simulador_thread.join()
     pass
 
 
@@ -551,6 +562,7 @@ def runMonoAlg3D():
 def change_example(example_selected, **kwargs):
     readini(example_selected)
 
+@state.change("running")
 @state.change("play")
 @state.change("advanced_config")
 @state.change("domain_matrix_main_function_selected")
@@ -564,13 +576,18 @@ def change_example(example_selected, **kwargs):
 @state.change("stimuli_main_function_selected7")
 @state.change("stimuli_main_function_selected8")
 @state.change("stimuli_main_function_selected9")
+@state.change("stimuli_main_function_selected10")
+@state.change("stimuli_main_function_selected11")
+@state.change("stimuli_main_function_selected12")
+@state.change("stimuli_main_function_selected13")
+@state.change("stimuli_main_function_selected14")
 @state.change("stimuli_main_function_selected0")
 def s0(**kwargs):
     update_domain_params()
 
 def update_domain_params():
     with SinglePageWithDrawerLayout(server) as layout:
-        
+        print("atualizou os parametros")
         layout.title.set_text("MonoWEB")
 
         with layout.drawer:
@@ -773,8 +790,10 @@ def update_domain_params():
             with vuetify.VBtn(hint="Clear all stimuli", click=clearstims):
                 vuetify.VIcon("mdi-delete")
 
-            with vuetify.VCol(style="max-width: 33%", align ="start", cols=4, sm=4):
+            with vuetify.VCol(cols="auto"):
                 vuetify.VBtn("Run", click=runMonoAlg3D)
+                if state.running == False:
+                    vuetify.VBtn("Visualize", click=visualize)
 
         with layout.toolbar as tb: 
 
