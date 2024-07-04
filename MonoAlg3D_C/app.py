@@ -15,9 +15,8 @@ if '--virtual-env' in sys.argv:
 import asyncio
 
 class SimuladorThread(threading.Thread):
-    def __init__(self, callback):
+    def __init__(self):
         super().__init__()
-        self.callback = callback 
 
     def run(self):
         #Testar isso daqui
@@ -36,7 +35,6 @@ class SimuladorThread(threading.Thread):
                 )
                 time.sleep(1)
             else:
-                self.callback()
                 print("fim da thread")
                 break
         
@@ -89,7 +87,7 @@ show_graph = False
 domain_matrix_main_function_options = ["initialize_grid_with_cuboid_mesh", "initialize_grid_with_spherical_mesh", "initialize_grid_with_square_mesh", "initialize_grid_with_cable_mesh", "initialize_grid_with_rabbit_mesh",
                                         "initialize_grid_with_plain_fibrotic_mesh",  "initialize_grid_with_plain_source_sink_fibrotic_mesh", 
                                        "initialize_grid_with_plain_and_sphere_fibrotic_mesh", "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh", "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating", "initialize_grid_with_square_mesh_and_fibrotic_region",
-                                        "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region"]
+                                        "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region", "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh_with_conic_path"]
 
 library_file_options = ["shared_libs/libToRORd_dynCl_mixed_endo_mid_epi.so", "shared_libs/libmitchell_shaeffer_2003.so", "shared_libs/libstewart_aslanidi_noble_2009.so", "shared_libs/libten_tusscher_2006.so", "shared_libs/libohara_rudy_endo_2011.so",
                         "shared_libs/libbondarenko_2004.so", "shared_libs/libcourtemanche_ramirez_nattel_1998.so", "shared_libs/libfhn_mod.so", "shared_libs/libMaleckar2008.so", "shared_libs/libMaleckar2009.so", "shared_libs/libToRORd_fkatp_mixed_endo_mid_epi.so",
@@ -184,10 +182,6 @@ def update_contour(position , **kwargs):
     html_view.update_image()
     pass
 
-def visualize_allowed():
-    state.running = False
-    print("rodou a função")
-    update_domain_params()
 
 def visualize():
     load_data("temp")
@@ -335,6 +329,18 @@ def readini(nome_arquivo):
         state.side_length = config["domain"]["side_length"]
     if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
         state.side_length = config["domain"]["side_length"]
+    if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region":
+        state.side_length_x = config["domain"]["side_length_x"]
+        state.side_length_y = config["domain"]["side_length_y"]
+        state.side_length_z = config["domain"]["side_length_z"]
+        state.plain_center_x = config["domain"]["plain_center_x"]
+        state.plain_center_y = config["domain"]["plain_center_y"]
+        state.sphere_radius = config["domain"]["sphere_radius"]
+        state.border_zone_radius = config["domain"]["border_zone_radius"]
+        state.border_zone_size = config["domain"]["border_zone_size"]
+        state.phi = config["domain"]["phi"]
+        state.seed = config["domain"]["seed"]
+        state.conic_slope = config["domain"]["conic_slope"]
 
 
     state.library_file_select = config["ode_solver"]["library_file"]
@@ -342,6 +348,7 @@ def readini(nome_arquivo):
         colormap(0.0, 1.0)
     else:
         colormap(-80, 40)
+
     for i in range(int(state.n_estimulos)):
         state["start_stim_"+str(i)] = config["stim_"+str(i+1)]["start"]
         state["duration_"+str(i)] = config["stim_"+str(i+1)]["duration"]
@@ -481,6 +488,18 @@ def runMonoAlg3D():
             file.write("\nside_length="+str(state.side_length))
         if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
             file.write("\nside_length="+str(state.side_length))
+        if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh_with_conic_path":
+            file.write("\nside_length_x="+str(state.side_length_x))
+            file.write("\nside_length_y="+str(state.side_length_y))
+            file.write("\nside_length_z="+str(state.side_length_z))
+            file.write("\nplain_center_x="+str(state.plain_center_x))
+            file.write("\nplain_center_y="+str(state.plain_center_y))
+            file.write("\nsphere_radius="+str(state.sphere_radius))
+            file.write("\nborder_zone_radius="+str(state.border_zone_radius))
+            file.write("\nborder_zone_size="+str(state.border_zone_size))
+            file.write("\nphi="+str(state.phi))
+            file.write("\nseed="+str(state.seed))
+            file.write("\nconic_slope="+str(state.conic_slope))
 
         #ode_solver
         file.write("\n[ode_solver]\ndt=0.02\nuse_gpu=no\ngpu_id=0\nlibrary_file="+str(state.library_file_select))
@@ -552,9 +571,10 @@ def runMonoAlg3D():
                 file.write("\nmax_y_2="+str(state["max_y_2"+str(i)]))
                 file.write("\nmin_y_2="+str(state["min_y_2"+str(i)]))
     state.running = True
-    simulador_thread = SimuladorThread(visualize_allowed)
+    simulador_thread = SimuladorThread()
     simulador_thread.start()
     simulador_thread.join()
+    visualize()
     pass
 
 
@@ -699,6 +719,18 @@ def update_domain_params():
                     vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
                 if state.domain_matrix_main_function_selected == "initialize_grid_with_square_mesh":
                     vuetify.VTextField(v_model=("side_length", 1000), hint="side_length", persistent_hint=True)
+                if state.domain_matrix_main_function_selected == "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh_with_conic_path":
+                    vuetify.VTextField(v_model=("side_length_x", 10000.0), hint="Side lenght x", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length_y", 10000.0), hint="Side lenght y", persistent_hint=True)
+                    vuetify.VTextField(v_model=("side_length_z", 10000.0), hint="Side lenght z", persistent_hint=True)
+                    vuetify.VTextField(v_model=("plain_center_x", 4500.0), hint="Plain center x", persistent_hint=True)
+                    vuetify.VTextField(v_model=("plain_center_y", 4500.0), hint="Plain center y", persistent_hint=True)
+                    vuetify.VTextField(v_model=("sphere_radius", 4500.0), hint="Sphere radius", persistent_hint=True)
+                    vuetify.VTextField(v_model=("border_zone_radius", 4500.0), hint="Border zone radius", persistent_hint=True)
+                    vuetify.VTextField(v_model=("border_zone_size", 4500.0), hint="Border zone size", persistent_hint=True)
+                    vuetify.VTextField(v_model=("phi", 4500.0), hint="Fibrosis %", persistent_hint=True)
+                    vuetify.VTextField(v_model=("seed", 4500.0), hint="Seed", persistent_hint=True)
+                    vuetify.VTextField(v_model=("conic_slope", 4500.0), hint="Conic slope", persistent_hint=True)
 
 
                 with vuetify.VList(classes="pt-5"):
@@ -792,8 +824,7 @@ def update_domain_params():
 
             with vuetify.VCol(cols="auto"):
                 vuetify.VBtn("Run", click=runMonoAlg3D)
-                if state.running == False:
-                    vuetify.VBtn("Visualize", click=visualize)
+
 
         with layout.toolbar as tb: 
 
