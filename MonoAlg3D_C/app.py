@@ -20,8 +20,7 @@ class SimuladorThread(threading.Thread):
 
     def run(self):
         #Testar isso daqui
-        processo = subprocess.Popen("wsl ./bin/MonoAlg3D -c ./example_configs/custom.ini", shell=True)
-        
+        processo = subprocess.Popen("wsl ./bin/MonoAlg3D -c ./example_configs/custom.ini", shell=True)        
         #Apenas um exemplo para demosntrar
         #processo = subprocess.Popen("C:/Users/lucas/AppData/Local/Programs/Python/Python312/python.exe c:/Users/lucas/venv/MonoAlgWeb-trame/MonoAlg3D_C/exemplo.py")
         while True:
@@ -51,8 +50,6 @@ import plotly.graph_objects as go
 from trame.widgets import vuetify2 as vuetify
 import re
 
-
-monoalg_command = "./bin/MonoAlg3D -c ./example_configs/custom.ini"
 
 ########################### Configurando paraview #######################
 # -----------------------------------------------------------------------------
@@ -89,6 +86,12 @@ domain_matrix_main_function_options = ["initialize_grid_with_cuboid_mesh", "init
                                        "initialize_grid_with_plain_and_sphere_fibrotic_mesh", "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh", "initialize_grid_with_plain_and_sphere_fibrotic_mesh_without_inactivating", "initialize_grid_with_square_mesh_and_fibrotic_region",
                                         "initialize_grid_with_square_mesh_and_source_sink_fibrotic_region", "initialize_grid_with_cuboid_and_sphere_fibrotic_mesh_with_conic_path"]
 
+extra_data_options = ["set_extra_data_for_fibrosis_sphere", "set_extra_data_for_fibrosis_plain",
+"set_extra_data_for_no_fibrosis", 
+"set_extra_data_for_benchmark", "set_extra_data_for_spiral_fhn", "set_mixed_model_if_x_less_than", "set_mixed_model_purkinje_and_tissue",
+"set_extra_data_mixed_tt3", "set_extra_data_mixed_torord_dynCl_epi_mid_endo",
+"set_extra_data_mixed_torord_Land_same_celltype", "set_extra_data_mixed_torord_Land_epi_mid_endo", "set_extra_data_for_cuboid_sphere_fibrotic_mesh_with_conic_path"]
+
 library_file_options = ["shared_libs/libToRORd_dynCl_mixed_endo_mid_epi.so", "shared_libs/libmitchell_shaeffer_2003.so", "shared_libs/libstewart_aslanidi_noble_2009.so", "shared_libs/libten_tusscher_2006.so", "shared_libs/libohara_rudy_endo_2011.so",
                         "shared_libs/libbondarenko_2004.so", "shared_libs/libcourtemanche_ramirez_nattel_1998.so", "shared_libs/libfhn_mod.so", "shared_libs/libMaleckar2008.so", "shared_libs/libMaleckar2009.so", "shared_libs/libToRORd_fkatp_mixed_endo_mid_epi.so",
                         "shared_libs/libToRORd_fkatp_endo.so", "shared_libs/libten_tusscher_3_endo.so", "shared_libs/libten_tusscher_2004_endo.so", "shared_libs/libToRORd_Land_mixed_endo_mid_epi.s" ]
@@ -112,6 +115,7 @@ state.n_estimulos = 0
 # Load function, runs every time server starts
 def init(**kwargs):
     load_data("EX01")
+    extra_data_std()
 
 def load_data(nf):
     global time_values, representation, reader, show_graph
@@ -230,11 +234,41 @@ def playAnimation():
         state.play = False
     else:
         state.play = True
+def extra_data_std():
+    state.atpi =6.8
+    state.Ko = 5.4
+    state.Ki = 138.3
+    state.GNa_multiplicator = 1.0
+    state.GCaL_multiplicator = 1.0
+    state.INaCa_multiplicator = 1.0
+    state.Vm_modifier = 0.0
+    state.Ikatp_multiplicator = 1.0
+    state.INa_Multiplier=1
+    state.ICaL_Multiplier=1
+    state.Ito_Multiplier=1
+    state.INaL_Multiplier=1
+    state.IKr_Multiplier=1
+    state.IKs_Multiplier=1
+    state.IK1_Multiplier=1
+    state.IKb_Multiplier=1
+    state.INaCa_Multiplier=1
+    state.INaK_Multiplier=1
+    state.INab_Multiplier=1
+    state.ICab_Multiplier=1
+    state.IpCa_Multiplier=1
+    state.ICaCl_Multiplier=1
+    state.IClb_Multiplier=1
+    state.Jrel_Multiplier=1
+    state.Jup_Multiplier =1
+    state.IKCa_Multiplier=1
+    state.aCaMK_Multiplier=1
+    state.taurelp_Multiplier=1
 
 def readini(nome_arquivo):
     config = {}
     with open("./example_configs/" + str(nome_arquivo), 'r') as file:
         state.n_estimulos = 0
+        state.extra_data = False
         current_section = None
         for line in file:
             line = line.strip()
@@ -249,6 +283,9 @@ def readini(nome_arquivo):
                     state.n_estimulos+=1
                 if current_section == "example":
                     load_data(nome_arquivo.split("_")[0]) 
+                if current_section == 'extra_data':
+                    state.extra_data = True
+                    extra_data_std()
             else:
                 parts = line.split('=', 1)
                 if len(parts) == 2:
@@ -342,6 +379,148 @@ def readini(nome_arquivo):
         state.seed = config["domain"]["seed"]
         state.conic_slope = config["domain"]["conic_slope"]
 
+    #Extra data
+    if state.extra_data_selected == "set_extra_data_for_fibrosis_sphere":
+        state.plain_center = config["extra_data"]["plain_center"]
+        state.border_zone_size = config["extra_data"]["border_zone_size"]
+        state.sphere_radius = config["extra_data"]["sphere_radius"]
+        state.atpi = config["extra_data"]["atpi"]
+        state.Ko = config["extra_data"]["Ko"]
+        state.Ki = config["extra_data"]["Ki"]
+        state.GNa_multiplicator = config["extra_data"]["GNa_multiplicator"]
+        state.GCaL_multiplicator = config["extra_data"]["GCaL_multiplicator"]
+        state.INaCa_multiplicator = config["extra_data"]["INaCa_multiplicator"]
+        state.Vm_modifier = config["extra_data"]["Vm_modifier"]
+        state.Ikatp_multiplicator = config["extra_data"]["Ikatp_multiplicator"]
+
+    if state.extra_data_selected == "set_extra_data_for_fibrosis_plain":
+        state.atpi = config["extra_data"]["atpi"]
+        state.Ko = config["extra_data"]["Ko"]
+        state.Ki = config["extra_data"]["Ki"]
+        state.GNa_multiplicator = config["extra_data"]["GNa_multiplicator"]
+        state.GCaL_multiplicator = config["extra_data"]["GCaL_multiplicator"]
+        state.INaCa_multiplicator = config["extra_data"]["INaCa_multiplicator"]
+        state.Vm_modifier = config["extra_data"]["Vm_modifier"]
+        state.Ikatp_multiplicator = config["extra_data"]["Ikatp_multiplicator"]
+
+    if state.extra_data_selected == "set_extra_data_for_no_fibrosis":
+        state.atpi = config["extra_data"]["atpi"]
+        state.Ko = config["extra_data"]["Ko"]
+        state.Ki = config["extra_data"]["Ki"]
+        state.GNa_multiplicator = config["extra_data"]["GNa_multiplicator"]
+        state.GCaL_multiplicator = config["extra_data"]["GCaL_multiplicator"]
+        state.INaCa_multiplicator = config["extra_data"]["INaCa_multiplicator"]
+        state.Vm_modifier = config["extra_data"]["Vm_modifier"]
+        state.Ikatp_multiplicator = config["extra_data"]["Ikatp_multiplicator"]
+
+    if state.extra_data_selected == "set_mixed_model_if_x_less_than":
+        state.x_limit = config["extra_data"]["x_limit"]
+            
+    if state.extra_data_selected == "set_extra_data_mixed_tt3":
+        state.atpi = config["extra_data"]["atpi"]
+        state.Ko = config["extra_data"]["Ko"]
+        state.Ki = config["extra_data"]["Ki"]
+        state.GNa_multiplicator = config["extra_data"]["GNa_multiplicator"]
+        state.GCaL_multiplicator = config["extra_data"]["GCaL_multiplicator"]
+        state.INaCa_multiplicator = config["extra_data"]["INaCa_multiplicator"]
+        state.Vm_modifier = config["extra_data"]["Vm_modifier"]
+        state.Ikatp_multiplicator = config["extra_data"]["Ikatp_multiplicator"]
+
+    if state.extra_data_selected == "set_extra_data_mixed_torord_dynCl_epi_mid_endo":
+        state.INa_Multiplier = config["extra_data"]["INa_Multiplier"]
+        state.ICaL_Multiplier = config["extra_data"]["ICaL_Multiplier"]
+        state.Ito_Multiplier = config["extra_data"]["Ito_Multiplier"]
+        state.INaL_Multiplier = config["extra_data"]["INaL_Multiplier"]
+        state.IKr_Multiplier = config["extra_data"]["IKr_Multiplier"]
+        state.IKs_Multiplier = config["extra_data"]["IKs_Multiplier"]
+        state.IK1_Multiplier = config["extra_data"]["IK1_Multiplier"]
+        state.IKb_Multiplier = config["extra_data"]["IKb_Multiplier"]
+        state.INaCa_Multiplier = config["extra_data"]["INaCa_Multiplier"]
+        state.INaK_Multiplier = config["extra_data"]["INaK_Multiplier"]
+        state.INab_Multiplier = config["extra_data"]["INab_Multiplier"]
+        state.ICab_Multiplier = config["extra_data"]["ICab_Multiplier"]
+        state.IpCa_Multiplier = config["extra_data"]["IpCa_Multiplier"]
+        state.ICaCl_Multiplier = config["extra_data"]["ICaCl_Multiplier"]
+        state.IClb_Multiplier = config["extra_data"]["IClb_Multiplier"]
+        state.Jrel_Multiplier = config["extra_data"]["Jrel_Multiplier"]
+        state.Jup_Multiplier = config["extra_data"]["Jup_Multiplier"]
+
+    if state.extra_data_selected == "set_extra_data_mixed_torord_fkatp_epi_mid_endo":
+        state.INa_Multiplier = config["extra_data"]["INa_Multiplier"]
+        state.ICaL_Multiplier = config["extra_data"]["ICaL_Multiplier"]
+        state.Ito_Multiplier = config["extra_data"]["Ito_Multiplier"]
+        state.INaL_Multiplier = config["extra_data"]["INaL_Multiplier"]
+        state.IKr_Multiplier = config["extra_data"]["IKr_Multiplier"]
+        state.IKs_Multiplier = config["extra_data"]["IKs_Multiplier"]
+        state.IK1_Multiplier = config["extra_data"]["IK1_Multiplier"]
+        state.IKb_Multiplier = config["extra_data"]["IKb_Multiplier"]
+        state.INaCa_Multiplier = config["extra_data"]["INaCa_Multiplier"]
+        state.INaK_Multiplier = config["extra_data"]["INaK_Multiplier"]
+        state.INab_Multiplier = config["extra_data"]["INab_Multiplier"]
+        state.ICab_Multiplier = config["extra_data"]["ICab_Multiplier"]
+        state.IpCa_Multiplier = config["extra_data"]["IpCa_Multiplier"]
+        state.ICaCl_Multiplier = config["extra_data"]["ICaCl_Multiplier"]
+        state.IClb_Multiplier = config["extra_data"]["IClb_Multiplier"]
+        state.Jrel_Multiplier = config["extra_data"]["Jrel_Multiplier"]
+        state.Jup_Multiplier = config["extra_data"]["Jup_Multiplier"]
+            
+    if state.extra_data_selected == "set_extra_data_mixed_torord_Land_same_celltype":
+        state.INa_Multiplier = config["extra_data"]["INa_Multiplier"]
+        state.INaL_Multiplier = config["extra_data"]["INaL_Multiplier"]
+        state.INaCa_Multiplier = config["extra_data"]["INaCa_Multiplier"]
+        state.INaK_Multiplier = config["extra_data"]["INaK_Multiplier"]
+        state.INab_Multiplier = config["extra_data"]["INab_Multiplier"]
+        state.Ito_Multiplier = config["extra_data"]["Ito_Multiplier"]
+        state.IKr_Multiplier = config["extra_data"]["IKr_Multiplier"]
+        state.IKs_Multiplier = config["extra_data"]["IKs_Multiplier"]
+        state.IK1_Multiplier = config["extra_data"]["IK1_Multiplier"]
+        state.IKb_Multiplier = config["extra_data"]["IKb_Multiplier"]
+        state.IKCa_Multiplier = config["extra_data"]["IKCa_Multiplier"]
+        state.ICaL_Multiplier = config["extra_data"]["ICaL_Multiplier"]
+        state.ICab_Multiplier = config["extra_data"]["ICab_Multiplier"]
+        state.IpCa_Multiplier = config["extra_data"]["IpCa_Multiplier"]
+        state.ICaCl_Multiplier = config["extra_data"]["ICaCl_Multiplier"]
+        state.IClb_Multiplier = config["extra_data"]["IClb_Multiplier"]
+        state.Jrel_Multiplier = config["extra_data"]["Jrel_Multiplier"]
+        state.Jup_Multiplier = config["extra_data"]["Jup_Multiplier"]
+        state.aCaMK_Multiplier = config["extra_data"]["aCaMK_Multiplier"]
+        state.taurelp_Multiplier = config["extra_data"]["taurelp_Multiplier"]
+
+    if state.extra_data_selected == "set_extra_data_mixed_torord_Land_epi_mid_endo":
+        state.INa_Multiplier = config["extra_data"]["INa_Multiplier"]
+        state.INaL_Multiplier = config["extra_data"]["INaL_Multiplier"]
+        state.INaCa_Multiplier = config["extra_data"]["INaCa_Multiplier"]
+        state.INaK_Multiplier = config["extra_data"]["INaK_Multiplier"]
+        state.INab_Multiplier = config["extra_data"]["INab_Multiplier"]
+        state.Ito_Multiplier = config["extra_data"]["Ito_Multiplier"]
+        state.IKr_Multiplier = config["extra_data"]["IKr_Multiplier"]
+        state.IKs_Multiplier = config["extra_data"]["IKs_Multiplier"]
+        state.IK1_Multiplier = config["extra_data"]["IK1_Multiplier"]
+        state.IKb_Multiplier = config["extra_data"]["IKb_Multiplier"]
+        state.IKCa_Multiplier = config["extra_data"]["IKCa_Multiplier"]
+        state.ICaL_Multiplier = config["extra_data"]["ICaL_Multiplier"]
+        state.ICab_Multiplier = config["extra_data"]["ICab_Multiplier"]
+        state.IpCa_Multiplier = config["extra_data"]["IpCa_Multiplier"]
+        state.ICaCl_Multiplier = config["extra_data"]["ICaCl_Multiplier"]
+        state.IClb_Multiplier = config["extra_data"]["IClb_Multiplier"]
+        state.Jrel_Multiplier = config["extra_data"]["Jrel_Multiplier"]
+        state.Jup_Multiplier = config["extra_data"]["Jup_Multiplier"]
+        state.aCaMK_Multiplier = config["extra_data"]["aCaMK_Multiplier"]
+        state.taurelp_Multiplier = config["extra_data"]["taurelp_Multiplier"]
+
+    if state.extra_data_selected == "set_extra_data_for_cuboid_sphere_fibrotic_mesh_with_conic_path":
+        state.border_zone_size = config["extra_data"]["border_zone_size"]
+        state.plain_center_x = config["extra_data"]["plain_center_x"]
+        state.plain_center_y = config["extra_data"]["plain_center_y"]
+        state.sphere_radius = config["extra_data"]["sphere_radius"]
+        state.atpi = config["extra_data"]["atpi"]
+        state.Ko = config["extra_data"]["Ko"]
+        state.Ki = config["extra_data"]["Ki"]
+        state.GNa_multiplicator = config["extra_data"]["GNa_multiplicator"]
+        state.GCaL_multiplicator = config["extra_data"]["GCaL_multiplicator"]
+        state.INaCa_multiplicator = config["extra_data"]["INaCa_multiplicator"]
+        state.Vm_modifier = config["extra_data"]["Vm_modifier"]
+        state.Ikatp_multiplicator = config["extra_data"]["Ikatp_multiplicator"]
 
     state.library_file_select = config["ode_solver"]["library_file"]
     if state.library_file_select == "shared_libs/libmitchell_shaeffer_2003.so" or state.library_file_select == "shared_libs/libfhn_mod.so":
@@ -501,6 +680,151 @@ def runMonoAlg3D():
             file.write("\nseed="+str(state.seed))
             file.write("\nconic_slope="+str(state.conic_slope))
 
+        #Extra Data
+        if state.extra_data:
+            file.write("\n[extra_data]\nmain_function="+str(state.extra_data_selected))
+            if state.extra_data_selected == "set_extra_data_for_fibrosis_sphere":
+                file.write("\nplain_center="+str(state.plain_center))
+                file.write("\nborder_zone_size ="+str(state.border_zone_size))
+                file.write("\nsphere_radius = "+str(state.sphere_radius))
+                file.write("\natpi ="+str(state.atpi))
+                file.write("\nKo ="+str(state.Ko))
+                file.write("\nKi ="+str(state.Ki))
+                file.write("\nGNa_multiplicator ="+str(state.GNa_multiplicator))
+                file.write("\nGCaL_multiplicator ="+str(state.GCaL_multiplicator))
+                file.write("\nINaCa_multiplicator ="+str(state.INaCa_multiplicator))
+                file.write("\nVm_modifier ="+str(state.Vm_modifier))
+                file.write("\nIkatp_multiplicator ="+str(state.Ikatp_multiplicator))
+
+            if state.extra_data_selected == "set_extra_data_for_fibrosis_plain":
+                file.write("\natpi ="+str(state.atpi))
+                file.write("\nKo ="+str(state.Ko))
+                file.write("\nKi ="+str(state.Ki))
+                file.write("\nGNa_multiplicator ="+str(state.GNa_multiplicator))
+                file.write("\nGCaL_multiplicator ="+str(state.GCaL_multiplicator))
+                file.write("\nINaCa_multiplicator ="+str(state.INaCa_multiplicator))
+                file.write("\nVm_modifier ="+str(state.Vm_modifier))
+                file.write("\nIkatp_multiplicator ="+str(state.Ikatp_multiplicator))
+
+            if state.extra_data_selected == "set_extra_data_for_no_fibrosis":
+                file.write("\natpi ="+str(state.atpi))
+                file.write("\nKo ="+str(state.Ko))
+                file.write("\nKi ="+str(state.Ki))
+                file.write("\nGNa_multiplicator ="+str(state.GNa_multiplicator))
+                file.write("\nGCaL_multiplicator ="+str(state.GCaL_multiplicator))
+                file.write("\nINaCa_multiplicator ="+str(state.INaCa_multiplicator))
+                file.write("\nVm_modifier ="+str(state.Vm_modifier))
+                file.write("\nIkatp_multiplicator ="+str(state.Ikatp_multiplicator))
+
+            if state.extra_data_selected == "set_mixed_model_if_x_less_than":
+                file.write("\nx_limit ="+str(state.x_limit))
+                    
+            if state.extra_data_selected == "set_extra_data_mixed_tt3":
+                file.write("\natpi ="+str(state.atpi))
+                file.write("\nKo ="+str(state.Ko))
+                file.write("\nKi ="+str(state.Ki))
+                file.write("\nGNa_multiplicator ="+str(state.GNa_multiplicator))
+                file.write("\nGCaL_multiplicator ="+str(state.GCaL_multiplicator))
+                file.write("\nINaCa_multiplicator ="+str(state.INaCa_multiplicator))
+                file.write("\nVm_modifier ="+str(state.Vm_modifier))
+                file.write("\nIkatp_multiplicator ="+str(state.Ikatp_multiplicator))
+
+            if state.extra_data_selected == "set_extra_data_mixed_torord_dynCl_epi_mid_endo":
+                file.write("\nINa_Multiplier ="+str(state.INa_Multiplier))
+                file.write("\nICaL_Multiplier ="+str(state.ICaL_Multiplier))
+                file.write("\nIto_Multiplier ="+str(state.Ito_Multiplier))
+                file.write("\nINaL_Multiplier ="+str(state.INaL_Multiplier))
+                file.write("\nIKr_Multiplier ="+str(state.IKr_Multiplier))
+                file.write("\nIKs_Multiplier ="+str(state.IKs_Multiplier))
+                file.write("\nIK1_Multiplier ="+str(state.IK1_Multiplier))
+                file.write("\nIKb_Multiplier ="+str(state.IKb_Multiplier))
+                file.write("\nINaCa_Multiplier ="+str(state.INaCa_Multiplier))
+                file.write("\nINaK_Multiplier ="+str(state.INaK_Multiplier))
+                file.write("\nINab_Multiplier ="+str(state.INab_Multiplier))
+                file.write("\nICab_Multiplier ="+str(state.ICab_Multiplier))
+                file.write("\nIpCa_Multiplier ="+str(state.IpCa_Multiplier))
+                file.write("\nICaCl_Multiplier ="+str(state.ICaCl_Multiplier))
+                file.write("\nIClb_Multiplier ="+str(state.IClb_Multiplier))
+                file.write("\nJrel_Multiplier ="+str(state.Jrel_Multiplier))
+                file.write("\nJup_Multiplier ="+str(state.Jup_Multiplier))
+
+            if state.extra_data_selected == "set_extra_data_mixed_torord_fkatp_epi_mid_endo":
+                file.write("\nINa_Multiplier ="+str(state.INa_Multiplier))
+                file.write("\nICaL_Multiplier ="+str(state.ICaL_Multiplier))
+                file.write("\nIto_Multiplier ="+str(state.Ito_Multiplier))
+                file.write("\nINaL_Multiplier ="+str(state.INaL_Multiplier))
+                file.write("\nIKr_Multiplier ="+str(state.IKr_Multiplier))
+                file.write("\nIKs_Multiplier ="+str(state.IKs_Multiplier))
+                file.write("\nIK1_Multiplier ="+str(state.IK1_Multiplier))
+                file.write("\nIKb_Multiplier ="+str(state.IKb_Multiplier))
+                file.write("\nINaCa_Multiplier ="+str(state.INaCa_Multiplier))
+                file.write("\nINaK_Multiplier ="+str(state.INaK_Multiplier))
+                file.write("\nINab_Multiplier ="+str(state.INab_Multiplier))
+                file.write("\nICab_Multiplier ="+str(state.ICab_Multiplier))
+                file.write("\nIpCa_Multiplier ="+str(state.IpCa_Multiplier))
+                file.write("\nICaCl_Multiplier ="+str(state.ICaCl_Multiplier))
+                file.write("\nIClb_Multiplier ="+str(state.IClb_Multiplier))
+                file.write("\nJrel_Multiplier ="+str(state.Jrel_Multiplier))
+                file.write("\nJup_Multiplier ="+str(state.Jup_Multiplier))
+                    
+            if state.extra_data_selected == "set_extra_data_mixed_torord_Land_same_celltype":
+                file.write("\nINa_Multiplier ="+str(state.INa_Multiplier))
+                file.write("\nINaL_Multiplier ="+str(state.INaL_Multiplier))
+                file.write("\nINaCa_Multiplier ="+str(state.INaCa_Multiplier))
+                file.write("\nINaK_Multiplier ="+str(state.INaK_Multiplier))
+                file.write("\nINab_Multiplier ="+str(state.INab_Multiplier))
+                file.write("\nIto_Multiplier ="+str(state.Ito_Multiplier))
+                file.write("\nIKr_Multiplier ="+str(state.IKr_Multiplier))
+                file.write("\nIKs_Multiplier ="+str(state.IKs_Multiplier))
+                file.write("\nIK1_Multiplier ="+str(state.IK1_Multiplier))
+                file.write("\nIKb_Multiplier ="+str(state.IKb_Multiplier))
+                file.write("\nIKCa_Multiplier ="+str(state.IKCa_Multiplier))
+                file.write("\nICaL_Multiplier ="+str(state.ICaL_Multiplier))
+                file.write("\nICab_Multiplier ="+str(state.ICab_Multiplier))
+                file.write("\nIpCa_Multiplier ="+str(state.IpCa_Multiplier))
+                file.write("\nICaCl_Multiplier ="+str(state.ICaCl_Multiplier))
+                file.write("\nIClb_Multiplier ="+str(state.IClb_Multiplier))
+                file.write("\nJrel_Multiplier ="+str(state.Jrel_Multiplier))
+                file.write("\nJup_Multiplier ="+str(state.Jup_Multiplier))
+                file.write("\naCaMK_Multiplier ="+str(state.aCaMK_Multiplier))
+                file.write("\ntaurelp_Multiplier ="+str(state.taurelp_Multiplier))
+
+            if state.extra_data_selected == "set_extra_data_mixed_torord_Land_epi_mid_endo":
+                file.write("\nINa_Multiplier ="+str(state.INa_Multiplier))
+                file.write("\nINaL_Multiplier ="+str(state.INaL_Multiplier))
+                file.write("\nINaCa_Multiplier ="+str(state.INaCa_Multiplier))
+                file.write("\nINaK_Multiplier ="+str(state.INaK_Multiplier))
+                file.write("\nINab_Multiplier ="+str(state.INab_Multiplier))
+                file.write("\nIto_Multiplier ="+str(state.Ito_Multiplier))
+                file.write("\nIKr_Multiplier ="+str(state.IKr_Multiplier))
+                file.write("\nIKs_Multiplier ="+str(state.IKs_Multiplier))
+                file.write("\nIK1_Multiplier ="+str(state.IK1_Multiplier))
+                file.write("\nIKb_Multiplier ="+str(state.IKb_Multiplier))
+                file.write("\nIKCa_Multiplier ="+str(state.IKCa_Multiplier))
+                file.write("\nICaL_Multiplier ="+str(state.ICaL_Multiplier))
+                file.write("\nICab_Multiplier ="+str(state.ICab_Multiplier))
+                file.write("\nIpCa_Multiplier ="+str(state.IpCa_Multiplier))
+                file.write("\nICaCl_Multiplier ="+str(state.ICaCl_Multiplier))
+                file.write("\nIClb_Multiplier ="+str(state.IClb_Multiplier))
+                file.write("\nJrel_Multiplier ="+str(state.Jrel_Multiplier))
+                file.write("\nJup_Multiplier ="+str(state.Jup_Multiplier))
+                file.write("\naCaMK_Multiplier ="+str(state.aCaMK_Multiplier))
+                file.write("\ntaurelp_Multiplier ="+str(state.taurelp_Multiplier))
+
+            if state.extra_data_selected == "set_extra_data_for_cuboid_sphere_fibrotic_mesh_with_conic_path":
+                file.write("\nborder_zone_size ="+str(state.border_zone_size))
+                file.write("\nplain_center_x ="+str(state.plain_center_x))
+                file.write("\nplain_center_y ="+str(state.plain_center_y))
+                file.write("\nsphere_radius ="+str(state.sphere_radius))
+                file.write("\natpi ="+str(state.atpi))
+                file.write("\nKo ="+str(state.Ko))
+                file.write("\nKi ="+str(state.Ki))
+                file.write("\nGNa_multiplicator ="+str(state.GNa_multiplicator))
+                file.write("\nGCaL_multiplicator ="+str(state.GCaL_multiplicator))
+                file.write("\nINaCa_multiplicator ="+str(state.INaCa_multiplicator))
+                file.write("\nVm_modifier ="+str(state.Vm_modifier))
+                file.write("\nIkatp_multiplicator ="+str(state.Ikatp_multiplicator))
+
         #ode_solver
         file.write("\n[ode_solver]\ndt=0.02\nuse_gpu=no\ngpu_id=0\nlibrary_file="+str(state.library_file_select))
 
@@ -582,10 +906,13 @@ def runMonoAlg3D():
 def change_example(example_selected, **kwargs):
     readini(example_selected)
 
+@state.change("extra_data")
+@state.change("extra_data_selected")
 @state.change("running")
 @state.change("play")
 @state.change("advanced_config")
 @state.change("domain_matrix_main_function_selected")
+@state.change("extra_data_selected")
 @state.change("n_estimulos")
 @state.change("stimuli_main_function_selected1")
 @state.change("stimuli_main_function_selected2")
@@ -629,6 +956,8 @@ def update_domain_params():
                 persistent_hint=True,
             )
             
+            with vuetify.VCol(cols="auto"):
+                vuetify.VBtn("Run", click=runMonoAlg3D)
             vuetify.VCheckbox(v_model=("advanced_config", False), label="Advanced Settings")
 
             if state.advanced_config == True:
@@ -731,6 +1060,167 @@ def update_domain_params():
                     vuetify.VTextField(v_model=("phi", 4500.0), hint="Fibrosis %", persistent_hint=True)
                     vuetify.VTextField(v_model=("seed", 4500.0), hint="Seed", persistent_hint=True)
                     vuetify.VTextField(v_model=("conic_slope", 4500.0), hint="Conic slope", persistent_hint=True)
+                
+                vuetify.VCheckbox(v_model=("extra_data", False), label="Extra Data")
+
+                if state.extra_data:
+                    vuetify.VSelect(
+                    label="Extra Data Main Function",
+                    v_model=("extra_data_selected", "set_extra_data_for_fibrosis_sphere"),
+                    items=("extra_data_options", extra_data_options),
+                    hide_details=True,
+                    dense=True,
+                    outlined=True,
+                    classes="pt-5",
+                ) 
+
+                    #Extra Data
+                    if state.extra_data_selected == "set_extra_data_for_fibrosis_sphere":
+                        vuetify.VTextField(v_model=("plain_center", 10000.0), hint="plain_center", persistent_hint=True)
+                        vuetify.VTextField(v_model=("border_zone_size", 10000.0), hint="border_zone_size", persistent_hint=True)
+                        vuetify.VTextField(v_model=("sphere_radius", 10000.0), hint="sphere_radius", persistent_hint=True)
+                        vuetify.VTextField(v_model=("atpi", 10000.0), hint="atpi", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ko", 10000.0), hint="Ko", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ki", 10000.0), hint="Ki", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GNa_multiplicator", 10000.0), hint="GNa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GCaL_multiplicator", 10000.0), hint="GCaL_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_multiplicator", 10000.0), hint="INaCa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Vm_modifier", 10000.0), hint="Vm_modifier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ikatp_multiplicator", 10000.0), hint="Ikatp_multiplicator", persistent_hint=True)
+
+                    if state.extra_data_selected == "set_extra_data_for_fibrosis_plain":
+                        vuetify.VTextField(v_model=("atpi", 10000.0), hint="atpi", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ko", 10000.0), hint="Ko", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ki", 10000.0), hint="Ki", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GNa_multiplicator", 10000.0), hint="GNa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GCaL_multiplicator", 10000.0), hint="GCaL_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_multiplicator", 10000.0), hint="INaCa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Vm_modifier", 10000.0), hint="Vm_modifier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ikatp_multiplicator", 10000.0), hint="Ikatp_multiplicator", persistent_hint=True)
+
+                    if state.extra_data_selected == "set_extra_data_for_no_fibrosis":
+                        vuetify.VTextField(v_model=("atpi", 10000.0), hint="atpi", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ko", 10000.0), hint="Ko", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ki", 10000.0), hint="Ki", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GNa_multiplicator", 10000.0), hint="GNa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GCaL_multiplicator", 10000.0), hint="GCaL_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_multiplicator", 10000.0), hint="INaCa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Vm_modifier", 10000.0), hint="Vm_modifier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ikatp_multiplicator", 10000.0), hint="Ikatp_multiplicator", persistent_hint=True)
+
+                    if state.extra_data_selected == "set_extra_data_for_spiral_fhn":
+                        vuetify.VTextField(v_model=("file_u", 10000.0), hint="file_u", persistent_hint=True)
+                        vuetify.VTextField(v_model=("file_v", 10000.0), hint="file_v", persistent_hint=True)
+                        vuetify.VTextField(v_model=("interpolate", 10000.0), hint="interpolate", persistent_hint=True)
+
+                    if state.extra_data_selected == "set_mixed_model_if_x_less_than":
+                        vuetify.VTextField(v_model=("interpolate", 10000.0), hint="interpolate", persistent_hint=True)
+                            
+                    if state.extra_data_selected == "set_extra_data_mixed_tt3":
+                        vuetify.VTextField(v_model=("atpi", 10000.0), hint="atpi", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ko", 10000.0), hint="Ko", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ki", 10000.0), hint="Ki", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GNa_multiplicator", 10000.0), hint="GNa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GCaL_multiplicator", 10000.0), hint="GCaL_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_multiplicator", 10000.0), hint="INaCa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Vm_modifier", 10000.0), hint="Vm_modifier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ikatp_multiplicator", 10000.0), hint="Ikatp_multiplicator", persistent_hint=True)
+
+                    if state.extra_data_selected == "set_extra_data_mixed_torord_dynCl_epi_mid_endo":
+                        vuetify.VTextField(v_model=("INa_Multiplier", 10000.0), hint="INa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICaL_Multiplier", 10000.0), hint="ICaL_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ito_Multiplier", 10000.0), hint="Ito_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaL_Multiplier", 10000.0), hint="INaL_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKr_Multiplier", 10000.0), hint="IKr_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKs_Multiplier", 10000.0), hint="IKs_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IK1_Multiplier", 10000.0), hint="IK1_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKb_Multiplier", 10000.0), hint="IKb_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_Multiplier", 10000.0), hint="INaCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaK_Multiplier", 10000.0), hint="INaK_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INab_Multiplier", 10000.0), hint="INab_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICab_Multiplier", 10000.0), hint="ICab_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IpCa_Multiplier", 10000.0), hint="IpCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICaCl_Multiplier", 10000.0), hint="ICaCl_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IClb_Multiplier", 10000.0), hint="IClb_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Jrel_Multiplier", 10000.0), hint="Jrel_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Jup_Multiplier", 10000.0), hint="Jup_Multiplier", persistent_hint=True)
+
+                    if state.extra_data_selected == "set_extra_data_mixed_torord_fkatp_epi_mid_endo":
+                        vuetify.VTextField(v_model=("INa_Multiplier", 10000.0), hint="INa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICaL_Multiplier", 10000.0), hint="ICaL_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ito_Multiplier", 10000.0), hint="Ito_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaL_Multiplier", 10000.0), hint="INaL_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKr_Multiplier", 10000.0), hint="IKr_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKs_Multiplier", 10000.0), hint="IKs_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IK1_Multiplier", 10000.0), hint="IK1_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKb_Multiplier", 10000.0), hint="IKb_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_Multiplier", 10000.0), hint="INaCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaK_Multiplier", 10000.0), hint="INaK_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INab_Multiplier", 10000.0), hint="INab_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICab_Multiplier", 10000.0), hint="ICab_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IpCa_Multiplier", 10000.0), hint="IpCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICaCl_Multiplier", 10000.0), hint="ICaCl_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IClb_Multiplier", 10000.0), hint="IClb_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Jrel_Multiplier", 10000.0), hint="Jrel_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Jup_Multiplier", 10000.0), hint="Jup_Multiplier", persistent_hint=True)
+                            
+                    if state.extra_data_selected == "set_extra_data_mixed_torord_Land_same_celltype":
+                        vuetify.VTextField(v_model=("INa_Multiplier", 10000.0), hint="INa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaL_Multiplier", 10000.0), hint="INaL_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_Multiplier", 10000.0), hint="INaCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaK_Multiplier", 10000.0), hint="INaK_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INab_Multiplier", 10000.0), hint="INab_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ito_Multiplier", 10000.0), hint="Ito_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKr_Multiplier", 10000.0), hint="IKr_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKs_Multiplier", 10000.0), hint="IKs_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IK1_Multiplier", 10000.0), hint="IK1_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKb_Multiplier", 10000.0), hint="IKb_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKCa_Multiplier", 10000.0), hint="IKCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICaL_Multiplier", 10000.0), hint="ICaL_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICab_Multiplier", 10000.0), hint="ICab_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IpCa_Multiplier", 10000.0), hint="IpCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICaCl_Multiplier", 10000.0), hint="ICaCl_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IClb_Multiplier", 10000.0), hint="IClb_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Jrel_Multiplier", 10000.0), hint="Jrel_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Jup_Multiplier", 10000.0), hint="Jup_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("aCaMK_Multiplier", 10000.0), hint="aCaMK_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("taurelp_Multiplier", 10000.0), hint="taurelp_Multiplier", persistent_hint=True)
+
+                    if state.extra_data_selected == "set_extra_data_mixed_torord_Land_epi_mid_endo":
+                        vuetify.VTextField(v_model=("INa_Multiplier", 10000.0), hint="INa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaL_Multiplier", 10000.0), hint="INaL_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_Multiplier", 10000.0), hint="INaCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaK_Multiplier", 10000.0), hint="INaK_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INab_Multiplier", 10000.0), hint="INab_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ito_Multiplier", 10000.0), hint="Ito_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKr_Multiplier", 10000.0), hint="IKr_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKs_Multiplier", 10000.0), hint="IKs_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IK1_Multiplier", 10000.0), hint="IK1_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKb_Multiplier", 10000.0), hint="IKb_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IKCa_Multiplier", 10000.0), hint="IKCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICaL_Multiplier", 10000.0), hint="ICaL_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICab_Multiplier", 10000.0), hint="ICab_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IpCa_Multiplier", 10000.0), hint="IpCa_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("ICaCl_Multiplier", 10000.0), hint="ICaCl_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("IClb_Multiplier", 10000.0), hint="IClb_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Jrel_Multiplier", 10000.0), hint="Jrel_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Jup_Multiplier", 10000.0), hint="Jup_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("aCaMK_Multiplier", 10000.0), hint="aCaMK_Multiplier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("taurelp_Multiplier", 10000.0), hint="taurelp_Multiplier", persistent_hint=True)
+
+                    if state.extra_data_selected == "set_extra_data_for_cuboid_sphere_fibrotic_mesh_with_conic_path":
+                        vuetify.VTextField(v_model=("border_zone_size", 10000.0), hint="border_zone_size", persistent_hint=True)
+                        vuetify.VTextField(v_model=("plain_center_x", 10000.0), hint="plain_center_x", persistent_hint=True)
+                        vuetify.VTextField(v_model=("plain_center_y", 10000.0), hint="plain_center_y", persistent_hint=True)
+                        vuetify.VTextField(v_model=("sphere_radius", 10000.0), hint="sphere_radius", persistent_hint=True)
+                        vuetify.VTextField(v_model=("atpi", 10000.0), hint="atpi", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ko", 10000.0), hint="Ko", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ki", 10000.0), hint="Ki", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GNa_multiplicator", 10000.0), hint="GNa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("GCaL_multiplicator", 10000.0), hint="GCaL_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("INaCa_multiplicator", 10000.0), hint="INaCa_multiplicator", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Vm_modifier", 10000.0), hint="Vm_modifier", persistent_hint=True)
+                        vuetify.VTextField(v_model=("Ikatp_multiplicator", 10000.0), hint="Ikatp_multiplicator", persistent_hint=True)
 
 
                 with vuetify.VList(classes="pt-5"):
@@ -821,9 +1311,6 @@ def update_domain_params():
                 vuetify.VIcon("mdi-minus")
             with vuetify.VBtn(hint="Clear all stimuli", click=clearstims):
                 vuetify.VIcon("mdi-delete")
-
-            with vuetify.VCol(cols="auto"):
-                vuetify.VBtn("Run", click=runMonoAlg3D)
 
 
         with layout.toolbar as tb: 
