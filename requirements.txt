@@ -1,5 +1,0 @@
-trame
-trame-vtk
-trame-vuetify
-vtk
-pyvista
