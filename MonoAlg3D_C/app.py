@@ -4,14 +4,19 @@ import threading
 import time
 if '--virtual-env' in sys.argv:
   virtualEnvPath = sys.argv[sys.argv.index('--virtual-env') + 1]
-  # Linux
-  virtualEnv = virtualEnvPath + '/bin/activate_this.py'
-  # Windows
-  #virtualEnv = virtualEnvPath + '/Scripts/activate_this.py'
+  virtualEnv = ""
+  if os.name == "posix":
+    # Linux
+    virtualEnv = virtualEnvPath + '/bin/activate_this.py'
+  elif os.name =="nt":
+    # Windows
+    virtualEnv = virtualEnvPath + '/Scripts/activate_this.py'
   if sys.version_info.major < 3:
     execfile(virtualEnv, dict(__file__=virtualEnv))
   else:
     exec(open(virtualEnv).read(), {'__file__': virtualEnv})
+
+sistema_operacional = os.name
 
 import asyncio
 
