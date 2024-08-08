@@ -54,3 +54,6 @@ $ pvpython --force-offscreen-rendering app.py --virtual-env ../../
 $ python3 run_examples.py --all
 ```
 
+- In case you want to run it with docker, all the instructions are on docker hub together with the Docker Images
+
+  https://hub.docker.com/repository/docker/rafaelrocha2/monoalg/general
